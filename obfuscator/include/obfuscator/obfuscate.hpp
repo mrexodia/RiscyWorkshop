@@ -4,5 +4,5 @@
 
 namespace obfuscator
 {
-bool obfuscate(Context& ctx);
+bool obfuscate(Context& ctx, bool verbose = false);
 }

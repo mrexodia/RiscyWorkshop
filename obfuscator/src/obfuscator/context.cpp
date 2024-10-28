@@ -1,3 +1,5 @@
+#include <map>
+
 #include <obfuscator/context.hpp>
 
 #include <zasm/formatter/formatter.hpp>
@@ -8,31 +10,58 @@ namespace obfuscator
 
 using namespace zasm;
 
+static std::map<uint32_t, const char*> flagToStringMap = {
+    {ZYDIS_CPUFLAG_CF, "CF"},
+    {ZYDIS_CPUFLAG_PF, "PF"},
+    {ZYDIS_CPUFLAG_AF, "AF"},
+    {ZYDIS_CPUFLAG_ZF, "ZF"},
+    {ZYDIS_CPUFLAG_SF, "SF"},
+    {ZYDIS_CPUFLAG_TF, "TF"},
+    {ZYDIS_CPUFLAG_IF, "IF"},
+    {ZYDIS_CPUFLAG_DF, "DF"},
+    {ZYDIS_CPUFLAG_OF, "OF"},
+    {ZYDIS_CPUFLAG_NT, "NT"},
+    {ZYDIS_CPUFLAG_RF, "RF"},
+    {ZYDIS_CPUFLAG_VM, "VM"},
+    {ZYDIS_CPUFLAG_AC, "AC"},
+    {ZYDIS_CPUFLAG_VIF, "VIF"},
+    {ZYDIS_CPUFLAG_VIP, "VIP"},
+    {ZYDIS_CPUFLAG_ID, "ID"},
+};
+
+const char* flagToString(uint32_t flag)
+{
+    auto itr = flagToStringMap.find(flag);
+    return itr == flagToStringMap.end() ? nullptr : itr->second;
+}
+
+std::vector<uint32_t> maskToFlags(uint32_t mask)
+{
+    std::vector<uint32_t> result;
+    for (auto& [flag, name] : flagToStringMap)
+    {
+        if (mask & flag)
+        {
+            result.push_back(flag);
+        }
+    }
+    return result;
+}
+
 std::string formatFlagsMask(uint32_t mask)
 {
     std::string result;
-#define FLAG(x)   \
-    if (mask & x) \
-    result += (&(#x)[14]), result += " "
-    FLAG(ZYDIS_CPUFLAG_CF);
-    FLAG(ZYDIS_CPUFLAG_PF);
-    FLAG(ZYDIS_CPUFLAG_AF);
-    FLAG(ZYDIS_CPUFLAG_ZF);
-    FLAG(ZYDIS_CPUFLAG_SF);
-    FLAG(ZYDIS_CPUFLAG_TF);
-    FLAG(ZYDIS_CPUFLAG_IF);
-    FLAG(ZYDIS_CPUFLAG_DF);
-    FLAG(ZYDIS_CPUFLAG_OF);
-    FLAG(ZYDIS_CPUFLAG_NT);
-    FLAG(ZYDIS_CPUFLAG_RF);
-    FLAG(ZYDIS_CPUFLAG_VM);
-    FLAG(ZYDIS_CPUFLAG_AC);
-    FLAG(ZYDIS_CPUFLAG_VIF);
-    FLAG(ZYDIS_CPUFLAG_VIP);
-    FLAG(ZYDIS_CPUFLAG_ID);
-#undef FLAG
-    if (!result.empty())
-        result.pop_back();
+    for (auto& [flag, name] : flagToStringMap)
+    {
+        if (mask & flag)
+        {
+            if (!result.empty())
+            {
+                result += " ";
+            }
+            result += name;
+        }
+    }
     return "(" + result + ")";
 }
 

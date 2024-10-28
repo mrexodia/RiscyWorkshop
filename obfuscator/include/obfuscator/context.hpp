@@ -24,6 +24,8 @@ template <> struct fmt::formatter<zasm::Label::Id> : fmt::formatter<std::string_
 namespace obfuscator
 {
 
+const char*                flagToString(uint32_t flag);
+std::vector<uint32_t>      maskToFlags(uint32_t mask);
 std::string                formatFlagsMask(uint32_t mask);
 std::string                formatRegsMask(uint64_t mask);
 std::vector<zasm::x86::Gp> maskToRegs(uint64_t mask);
@@ -38,8 +40,8 @@ struct InstructionData
     uint32_t                regsWritten   = 0;
     uint32_t                regsRead      = 0;
 
-    zasm::InstrCPUFlags flagsLive = 0;
     uint32_t            regsLive  = 0;
+    zasm::InstrCPUFlags flagsLive = 0;
 };
 
 // Stores additional data for nodes in the zasm::Program

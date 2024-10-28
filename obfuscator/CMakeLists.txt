@@ -91,9 +91,24 @@ FetchContent_Declare(linux-pe
 )
 FetchContent_MakeAvailable(linux-pe)
 
+message(STATUS "Fetching json...")
+FetchContent_Declare(json
+	URL
+		"https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz"
+	URL_HASH
+		SHA256=d6c65aca6b1ed68e7a182f4757257b107ae403032760ed6ef121c9d55e81757d
+)
+FetchContent_MakeAvailable(json)
+
 # Target: obfuscator
 set(obfuscator_SOURCES
 	cmake.toml
+	"include/obfuscator/analyze.hpp"
+	"include/obfuscator/context.hpp"
+	"include/obfuscator/disassemble.hpp"
+	"include/obfuscator/msvc-secure.hpp"
+	"include/obfuscator/obfuscate.hpp"
+	"include/obfuscator/utility.hpp"
 	"src/obfuscator/analyze.cpp"
 	"src/obfuscator/context.cpp"
 	"src/obfuscator/disassemble.cpp"
@@ -136,6 +151,7 @@ if(CMKR_ROOT_PROJECT) # root
 	target_link_libraries(obfuscate PRIVATE
 		riscvm::obfuscator
 		args::args
+		nlohmann_json::nlohmann_json
 	)
 
 	get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)

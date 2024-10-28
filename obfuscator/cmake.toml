@@ -29,11 +29,15 @@ sha256 = "312151a2d13c8327f5c9c586ac6cf7cddc1658e8f53edae0ec56509c8fa516c9"
 git = "https://github.com/can1357/linux-pe"
 tag = "be6d1f6fc30fb8058b5220e0bb2652a6dc8ec0b0"
 
+[fetch-content.json]
+url = "https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz"
+sha256 = "d6c65aca6b1ed68e7a182f4757257b107ae403032760ed6ef121c9d55e81757d"
+
 [target.obfuscator]
 type = "static"
 alias = "riscvm::obfuscator"
 sources = ["src/obfuscator/*.cpp"]
-headers = ["src/obfuscator/*.hpp"]
+headers = ["include/obfuscator/*.hpp"]
 include-directories = ["include"]
 compile-features = ["cxx_std_20"]
 link-libraries = ["zasm::zasm", "linux-pe", "fmt::fmt"]
@@ -42,7 +46,7 @@ link-libraries = ["zasm::zasm", "linux-pe", "fmt::fmt"]
 condition = "root"
 type = "executable"
 sources = ["src/obfuscate.cpp"]
-link-libraries = ["riscvm::obfuscator", "args::args"]
+link-libraries = ["riscvm::obfuscator", "args::args", "nlohmann_json::nlohmann_json"]
 
 [target.tests]
 type = "executable"

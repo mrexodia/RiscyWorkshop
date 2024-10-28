@@ -13,38 +13,18 @@ namespace obfuscator
 
 using namespace zasm;
 
-bool analyze(Context& ctx, bool verbose)
+Expected<CFG, std::string> CFG::analyze(const zasm::Program& program, Label entry, bool verbose)
 {
-    Program& program = ctx.program;
-    auto     mode    = program.getMode();
+    CFG cfg(program);
+
     if (verbose)
+    {
         fmt::println("=== ANALYZE ===");
+    }
     std::vector<Label> queue;
-    queue.push_back(program.getEntryPoint());
+    queue.push_back(entry);
     std::set<Label::Id> visisted;
 
-    // Construct the control flow graph
-    struct BasicBlock
-    {
-        uint64_t           address = 0;
-        Label              label;
-        Node*              begin = nullptr;
-        Node*              end   = nullptr;
-        std::vector<Label> successors;
-
-        uint32_t regsGen     = 0;
-        uint32_t regsKill    = 0;
-        uint32_t regsLiveIn  = 0;
-        uint32_t regsLiveOut = 0;
-
-        InstrCPUFlags flagsGen     = 0;
-        InstrCPUFlags flagsKill    = 0;
-        InstrCPUFlags flagsLiveIn  = 0;
-        InstrCPUFlags flagsLiveOut = 0;
-    };
-
-    std::map<uint64_t, BasicBlock> blocks;
-    std::set<uint64_t>             exits;
     while (!queue.empty())
     {
         auto blockStartLabel = queue.back();
@@ -82,23 +62,29 @@ bool analyze(Context& ctx, bool verbose)
                 queue.push_back(*label);
                 bb.successors.push_back(*label);
                 if (verbose)
+                {
                     fmt::println("not instr!");
+                }
                 break;
             }
 
             auto data = node->getUserData<InstructionData>();
-            auto str  = formatter::toString(program, instr, formatter::Options::HexImmediates);
             if (verbose)
+            {
+                auto str = formatter::toString(program, instr, formatter::Options::HexImmediates);
                 fmt::println("{:#x}|{}", data->address, str);
+            }
 
-            auto info = *instr->getDetail(mode);
+            auto info = *instr->getDetail(program.getMode());
             switch (info.getCategory())
             {
             case x86::Category::UncondBR:
             {
                 auto dest = instr->getOperand<Label>(0);
                 if (verbose)
+                {
                     fmt::println("UncondBR: {}", dest.getId());
+                }
                 queue.push_back(dest);
                 bb.successors.push_back(dest);
                 finished = true;
@@ -110,7 +96,9 @@ bool analyze(Context& ctx, bool verbose)
                 auto brtrue  = instr->getOperand<Label>(0);
                 auto brfalse = node->getNext()->get<Label>();
                 if (verbose)
+                {
                     fmt::println("CondBr: {}, {}", brtrue.getId(), brfalse.getId());
+                }
                 queue.push_back(brfalse);
                 queue.push_back(brtrue);
                 bb.successors.push_back(brtrue);
@@ -124,8 +112,7 @@ bool analyze(Context& ctx, bool verbose)
                 auto dest = instr->getOperand(0);
                 if (dest.getIf<Label>() != nullptr)
                 {
-                    fmt::println("unsupported call imm {:#x}", data->address);
-                    return false;
+                    return makeUnexpected(fmt::format("unsupported call imm {:#x}", data->address));
                 }
             }
             break;
@@ -133,7 +120,7 @@ bool analyze(Context& ctx, bool verbose)
             case x86::Category::Ret:
             {
                 finished = true;
-                exits.insert(bb.address);
+                cfg.exits.insert(bb.address);
             }
             break;
 
@@ -153,10 +140,14 @@ bool analyze(Context& ctx, bool verbose)
             __debugbreak();
         }
 
-        blocks.emplace(bb.address, bb);
+        cfg.blocks.emplace(bb.address, bb);
     }
 
-    // Compute the predecessors for each block
+    return cfg;
+}
+
+std::map<uint64_t, std::set<uint64_t>> CFG::getPredecessors() const
+{
     std::map<uint64_t, std::set<uint64_t>> predecessors;
     for (const auto& [address, _] : blocks)
     {
@@ -173,6 +164,11 @@ bool analyze(Context& ctx, bool verbose)
         }
     }
 
+    return predecessors;
+}
+
+std::map<uint64_t, BlockLiveness> CFG::getLivenessBlocks(bool verbose) const
+{
     // Perform liveness analysis on the control flow graph
     // https://en.wikipedia.org/wiki/Live-variable_analysis
 
@@ -181,6 +177,7 @@ bool analyze(Context& ctx, bool verbose)
     // does not take into account the next iteration of the loop"
 
     // Compute the GEN and KILL sets for each block
+    std::map<uint64_t, BlockLiveness> livenessBlocks;
     for (auto& [address, block] : blocks)
     {
         if (verbose)
@@ -189,6 +186,7 @@ bool analyze(Context& ctx, bool verbose)
             fmt::println("Analyzing block {:#x}\n==========\n{}\n==========", address, str);
         }
 
+        auto& liveness = livenessBlocks[address];
         for (auto node = block.begin; node != block.end; node = node->getNext())
         {
             auto  data   = node->getUserData<InstructionData>();
@@ -204,20 +202,22 @@ bool analyze(Context& ctx, bool verbose)
                 fmt::println("\tflags modified: {}", formatFlagsMask(data->flagsModified));
             }
 
-            block.regsGen |= data->regsRead & ~block.regsKill;
-            block.regsKill |= data->regsWritten;
-            block.flagsGen  = block.flagsGen | (data->flagsTested & ~block.flagsKill);
-            block.flagsKill = block.flagsKill | data->flagsModified;
+            liveness.regsGen |= data->regsRead & ~liveness.regsKill;
+            liveness.regsKill |= data->regsWritten;
+            liveness.flagsGen  = liveness.flagsGen | (data->flagsTested & ~liveness.flagsKill);
+            liveness.flagsKill = liveness.flagsKill | data->flagsModified;
         }
 
         if (verbose)
         {
-            fmt::println("regs_gen: {}", formatRegsMask(block.regsGen));
-            fmt::println("regs_kill: {}", formatRegsMask(block.regsKill));
-            fmt::println("flags_gen: {}", formatFlagsMask(block.flagsGen));
-            fmt::println("flags_kill: {}", formatFlagsMask(block.flagsKill));
+            fmt::println("regs_gen: {}", formatRegsMask(liveness.regsGen));
+            fmt::println("regs_kill: {}", formatRegsMask(liveness.regsKill));
+            fmt::println("flags_gen: {}", formatFlagsMask(liveness.flagsGen));
+            fmt::println("flags_kill: {}", formatFlagsMask(liveness.flagsKill));
         }
     }
+
+    auto predecessors = getPredecessors();
 
     // Solve the dataflow equations
     std::queue<uint64_t> worklist;
@@ -230,19 +230,19 @@ bool analyze(Context& ctx, bool verbose)
         auto address = worklist.front();
         worklist.pop();
 
-        auto&         block          = blocks.at(address);
-        auto          newRegsLiveIn  = block.regsGen | (block.regsLiveOut & ~block.regsKill);
-        InstrCPUFlags newFlagsLiveIn = block.flagsGen | (block.flagsLiveOut & ~block.flagsKill);
-        if (newRegsLiveIn != block.regsLiveIn || newFlagsLiveIn != block.flagsLiveIn)
+        auto&         liveness       = livenessBlocks.at(address);
+        auto          newRegsLiveIn  = liveness.regsGen | (liveness.regsLiveOut & ~liveness.regsKill);
+        InstrCPUFlags newFlagsLiveIn = liveness.flagsGen | (liveness.flagsLiveOut & ~liveness.flagsKill);
+        if (newRegsLiveIn != liveness.regsLiveIn || newFlagsLiveIn != liveness.flagsLiveIn)
         {
             // Update the LIVEin sets
-            block.regsLiveIn  = newRegsLiveIn;
-            block.flagsLiveIn = newFlagsLiveIn;
+            liveness.regsLiveIn  = newRegsLiveIn;
+            liveness.flagsLiveIn = newFlagsLiveIn;
 
             // Update the LIVEout sets in the predecessors and add them to the worklist
             for (const auto& predecessor : predecessors.at(address))
             {
-                auto& predecessorBlock = blocks.at(predecessor);
+                auto& predecessorBlock = livenessBlocks.at(predecessor);
                 predecessorBlock.regsLiveOut |= newRegsLiveIn;
                 predecessorBlock.flagsLiveOut = predecessorBlock.flagsLiveOut | newFlagsLiveIn;
                 worklist.push(predecessor);
@@ -250,7 +250,14 @@ bool analyze(Context& ctx, bool verbose)
         }
     }
 
+    return livenessBlocks;
+}
+
+std::vector<InstructionLiveness>
+CFG::getInstructionLiveness(const std::map<uint64_t, BlockLiveness>& livenessBlocks, bool verbose) const
+{
     // Compute liveness backwards for each block individually
+    std::vector<InstructionLiveness> result;
     for (auto& [address, block] : blocks)
     {
         if (verbose)
@@ -260,8 +267,9 @@ bool analyze(Context& ctx, bool verbose)
         }
 
         // We start with the live-out set of the block
-        InstrCPUFlags flagsLive = block.flagsLiveOut;
-        uint32_t      regsLive  = block.regsLiveOut;
+        auto&         liveness  = livenessBlocks.at(address);
+        InstrCPUFlags flagsLive = liveness.flagsLiveOut;
+        uint32_t      regsLive  = liveness.regsLiveOut;
         for (auto node = block.end->getPrev(); node != block.begin->getPrev(); node = node->getPrev())
         {
             auto  data   = node->getUserData<InstructionData>();
@@ -308,8 +316,7 @@ bool analyze(Context& ctx, bool verbose)
             }
 
             // Store the liveness state for the instruction
-            data->flagsLive = flagsLive;
-            data->regsLive  = regsLive;
+            result.push_back({node, regsLive, flagsLive});
 
             if (flagsModified)
             {
@@ -333,81 +340,7 @@ bool analyze(Context& ctx, bool verbose)
         }
     }
 
-    // Print the results
-    if (verbose)
-    {
-        std::string script;
-        for (const auto& [address, block] : blocks)
-        {
-            fmt::println("Results for block {:#x}\n==========", address);
-            for (auto node = block.begin; node != block.end; node = node->getNext())
-            {
-                auto data = node->getUserData<InstructionData>();
-                auto str  = formatter::toString(program, node, formatter::Options::HexImmediates);
-
-                script += "commentset ";
-                char address[32];
-                sprintf_s(address, "0x%llX", data->address);
-                script += address;
-                script += ", \"";
-                if (data->regsLive || data->flagsLive)
-                {
-                    script += formatRegsMask(data->regsLive);
-                    if (data->flagsLive)
-                    {
-                        script += "|";
-                        script += formatFlagsMask(data->flagsLive);
-                    }
-                }
-                else
-                {
-                    script += "no live (HA)";
-                }
-                script += "\"\n";
-
-                fmt::println(
-                    "{:#x}|{}|{}|{}", data->address, str, formatRegsMask(data->regsLive), formatFlagsMask(data->flagsLive)
-                );
-
-                if (data->regsRead & ~data->regsLive)
-                {
-                    fmt::println("\tdead regs read: %s\n", formatRegsMask(data->regsRead & ~data->regsLive).c_str());
-                    __debugbreak();
-                }
-            }
-            fmt::println("==========");
-
-            fmt::println("\tregs_live_in: {}", formatRegsMask(block.regsLiveIn));
-            fmt::println("\tregs_live_out: {}", formatRegsMask(block.regsLiveOut));
-            fmt::println("\tflags_live_in: {}", formatFlagsMask(block.flagsLiveIn));
-            fmt::println("\tflags_live_out: {}", formatFlagsMask(block.flagsLiveOut));
-        }
-
-        fmt::println("{}", script);
-
-        auto toHex = [](uint64_t value)
-        {
-            char buffer[64] = "";
-            sprintf_s(buffer, "\"0x%llX\"", value);
-            return std::string(buffer);
-        };
-
-        std::string dot = "digraph G {\n";
-        for (const auto& [address, block] : blocks)
-        {
-            dot += toHex(address) + " [label=\"" + program.getLabelData(block.label).value().name + "\"];\n";
-            for (const auto& successor : block.successors)
-            {
-                auto data = program.getLabelData(successor).value().node->getUserData<InstructionData>();
-                auto successorAddress = data->address;
-                dot += toHex(address) + " -> " + toHex(successorAddress) + ";\n";
-            }
-        }
-        dot += "}";
-
-        fmt::println("{}", dot);
-    }
-
-    return true;
+    return result;
 }
+
 } // namespace obfuscator
