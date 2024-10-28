@@ -3,6 +3,8 @@ import sys
 import pefile
 import argparse
 import subprocess
+import json
+import random
 from glob import glob
 
 from icicle import *
@@ -12,6 +14,7 @@ IMAGE_SCN_MEM_SHARED = 0x10000000
 IMAGE_SCN_MEM_EXECUTE = 0x20000000
 IMAGE_SCN_MEM_READ = 0x40000000
 IMAGE_SCN_MEM_WRITE = 0x80000000
+
 
 def page_align(size: int) -> int:
     return (size + 0xFFF) & ~0xFFF
@@ -32,7 +35,9 @@ class RISCVM:
 
         self.coverage = []
 
-    def run(self, riscvm_run_address: int, payload: bytes, *, get_coverage = False):
+        self.liveness_data = {}
+
+    def run(self, riscvm_run_address: int, payload: bytes, *, get_coverage = False, fuzz_liveness = False):
         # Reset instruction count
         self.emu.icount = 0
 
@@ -84,12 +89,20 @@ class RISCVM:
             self.emu.reg_write(reg, value)
 
         # Run emulation
-        if get_coverage:
+        if get_coverage or fuzz_liveness:
             while True:
                 rip = self.emu.reg_read("rip")
-                if rip != fake_return:
+                if (rip != fake_return) and get_coverage:
                     self.coverage.append(rip)
+
+                if (rip != fake_return) and fuzz_liveness:
+                    liveness = self.liveness_data[hex(rip)]["regs"]
+                    dead_regs = [reg for reg in ["RAX", "RBX", "RCX", "RDX", "RSP", "RBP", "RSI", "RDI", "R8", "R9", "R10", "R11", "R12", "R13", "R14", "R15"] if reg not in liveness]
+                    for reg in dead_regs:
+                        self.emu.reg_write(reg, random.getrandbits(64))
+
                 status = self.emu.step(1)
+
                 if status != RunStatus.InstructionLimit:
                     break
         else:
@@ -170,6 +183,7 @@ def main():
     parser.add_argument("--no-transform", help="Disable transformations", action="store_true")
     parser.add_argument("--no-obfuscator", help="Directly map the executable, skipping obfuscation", action="store_true")
     parser.add_argument("--coverage", help="Output lighthouse coverage")
+    parser.add_argument("--fuzz-liveness", help="Path to liveness data json, if not empty will fuzz", default="")
     args = parser.parse_args()
 
     riscvm = RISCVM()
@@ -178,6 +192,15 @@ def main():
 
     if not os.path.exists(args.riscvm):
         raise FileNotFoundError(f"riscvm executable does not exist: {args.riscvm}")
+
+    if args.fuzz_liveness:
+        if not os.path.exists(args.fuzz_liveness):
+            raise FileNotFoundError(f"liveness data does not exist: {args.fuzz_liveness}")
+        else:
+            liveness_data = json.load(open(args.fuzz_liveness))
+            for block in liveness_data:
+                for inst in (liveness_data[block]["Instr Liveness"]):
+                    riscvm.liveness_data[inst] = liveness_data[block]["Instr Liveness"][inst]
 
     if args.no_obfuscator:
         pe = pefile.PE(args.riscvm)
@@ -229,7 +252,7 @@ def main():
             f.seek(0x1190)
             payload = f.read()
         total += 1
-        result = riscvm.run(riscvm_run_address, payload, get_coverage=args.coverage)
+        result = riscvm.run(riscvm_run_address, payload, get_coverage=args.coverage, fuzz_liveness=args.fuzz_liveness)
         if result == 0:
             print(f"    SUCCESS (icount: {riscvm.emu.icount})")
             success += 1
