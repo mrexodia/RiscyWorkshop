@@ -49,7 +49,10 @@ Expected<CFG, std::string> CFG::analyze(const zasm::Program& program, Label entr
             __debugbreak();
         }
         if (verbose)
-            fmt::println("<==> Disassembling block: {} ({:#x})", labelData.name, blockAddress);
+        {
+            auto name = labelData.name != nullptr ? labelData.name : "";
+            fmt::println("<==> Disassembling block: {} ({:#x})", name, blockAddress);
+        }
 
         auto node     = labelData.node->getNext();
         bool finished = false;
@@ -59,6 +62,11 @@ Expected<CFG, std::string> CFG::analyze(const zasm::Program& program, Label entr
             if (instr == nullptr)
             {
                 auto label = node->getIf<Label>();
+                if (label == nullptr)
+                {
+                    fmt::println("not label!");
+                    __debugbreak();
+                }
                 queue.push_back(*label);
                 bb.successors.push_back(*label);
                 if (verbose)
@@ -75,8 +83,7 @@ Expected<CFG, std::string> CFG::analyze(const zasm::Program& program, Label entr
                 fmt::println("{:#x}|{}", data->address, str);
             }
 
-            auto info = *instr->getDetail(program.getMode());
-            switch (info.getCategory())
+            switch (data->detail.getCategory())
             {
             case x86::Category::UncondBR:
             {
@@ -133,12 +140,14 @@ Expected<CFG, std::string> CFG::analyze(const zasm::Program& program, Label entr
             node = node->getNext();
         }
 
-        bb.end = node;
-        if (bb.end == nullptr)
+        // NOTE: We do not allow a nullptr end node, because we need to walk the blocks backwards
+        if (node == nullptr)
         {
             fmt::println("empty block!");
             __debugbreak();
         }
+
+        bb.end = node;
 
         cfg.blocks.emplace(bb.address, bb);
     }

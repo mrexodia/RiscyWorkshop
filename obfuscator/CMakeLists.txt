@@ -164,6 +164,7 @@ endif()
 if(BUILD_TESTS) # build-tests
 	set(tests_SOURCES
 		cmake.toml
+		"src/tests/test-analyze.cpp"
 		"src/tests/test-context.cpp"
 	)
 
