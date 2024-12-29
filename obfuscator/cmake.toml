@@ -10,7 +10,7 @@ INSTALL_GTEST = false
 
 [fetch-content.zasm]
 git = "https://github.com/zyantific/zasm"
-tag = "a18fa34251b161cc18e4c0fc385dee7cea104cfd"
+tag = "b14c1b36c9bb453d8eb3a5b2cc180233f0e54a7a"
 
 [fetch-content.googletest]
 git = "https://github.com/google/googletest"
