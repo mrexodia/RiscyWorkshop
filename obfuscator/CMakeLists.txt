@@ -105,15 +105,15 @@ FetchContent_MakeAvailable(json)
 set(obfuscator_SOURCES
 	cmake.toml
 	"include/obfuscator/analyze.hpp"
-	"include/obfuscator/context.hpp"
 	"include/obfuscator/disassemble.hpp"
 	"include/obfuscator/msvc-secure.hpp"
 	"include/obfuscator/obfuscate.hpp"
+	"include/obfuscator/program.hpp"
 	"include/obfuscator/utility.hpp"
 	"src/obfuscator/analyze.cpp"
-	"src/obfuscator/context.cpp"
 	"src/obfuscator/disassemble.cpp"
 	"src/obfuscator/obfuscate.cpp"
+	"src/obfuscator/program.cpp"
 	"src/obfuscator/utility.cpp"
 )
 
@@ -166,7 +166,7 @@ if(BUILD_TESTS) # build-tests
 	set(tests_SOURCES
 		cmake.toml
 		"src/tests/test-analyze.cpp"
-		"src/tests/test-context.cpp"
+		"src/tests/test-program.cpp"
 	)
 
 	add_executable(tests)

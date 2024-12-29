@@ -1,6 +1,6 @@
 #include <map>
 
-#include <obfuscator/context.hpp>
+#include <obfuscator/program.hpp>
 
 #include <zasm/formatter/formatter.hpp>
 #include <fmt/format.h>

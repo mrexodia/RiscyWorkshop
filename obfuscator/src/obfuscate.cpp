@@ -16,7 +16,7 @@
 using namespace zasm;
 using namespace obfuscator;
 
-#include <obfuscator/context.hpp>
+#include <obfuscator/program.hpp>
 #include <obfuscator/disassemble.hpp>
 #include <obfuscator/analyze.hpp>
 #include <obfuscator/obfuscate.hpp>

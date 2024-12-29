@@ -4,7 +4,7 @@
 #include <set>
 #include <vector>
 
-#include <obfuscator/context.hpp>
+#include <obfuscator/program.hpp>
 
 namespace obfuscator
 {

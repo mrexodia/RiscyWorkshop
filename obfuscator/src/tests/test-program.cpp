@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <obfuscator/context.hpp>
+#include <obfuscator/program.hpp>
 
 using namespace zasm;
 using namespace obfuscator;
