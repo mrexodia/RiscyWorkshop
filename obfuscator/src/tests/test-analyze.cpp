@@ -8,10 +8,9 @@ using namespace zasm::x86;
 using namespace zasm;
 using namespace obfuscator;
 
-static void assignInstructionData(Context& context, uint64_t fakeAddress, bool verbose = false)
+static void assignInstructionData(ObfuscationProgram& program, uint64_t fakeAddress, bool verbose = false)
 {
-    auto& program = context.program;
-    auto  mode    = program.getMode();
+    auto mode = program.getMode();
 
     // NOTE: The analysis expects the last node to be a label (not nullptr)
     Assembler assembler(program);
@@ -29,7 +28,7 @@ static void assignInstructionData(Context& context, uint64_t fakeAddress, bool v
 
             auto address = fakeAddress++;
             auto detail  = *instr->getDetail(mode);
-            context.addInstructionData(node, address, mode, detail);
+            program.addInstructionData(node, address, mode, detail);
 
             // NOTE: The analysis expects the fallthrough block to have a label
             if (detail.getCategory() == x86::Category::CondBr && node->getNext()->getIf<Label>() == nullptr)
@@ -45,7 +44,7 @@ static void assignInstructionData(Context& context, uint64_t fakeAddress, bool v
                 fmt::println("\n[{}] {}", fakeAddress, formatter::toString(program, node));
             }
             // NOTE: Labels take the address of the next instruction
-            context.addInstructionData(node, fakeAddress, mode, {});
+            program.addInstructionData(node, fakeAddress, mode, {});
         }
         else
         {
@@ -57,8 +56,7 @@ static void assignInstructionData(Context& context, uint64_t fakeAddress, bool v
 
 TEST(Analyze, CFG)
 {
-    Program              program(MachineMode::AMD64);
-    Context              context(program);
+    ObfuscationProgram   program(MachineMode::AMD64);
     zasm::x86::Assembler assembler(program);
     auto                 entry  = assembler.createLabel("entry");
     auto                 hacker = assembler.createLabel("hacker");
@@ -80,7 +78,7 @@ TEST(Analyze, CFG)
     assembler.ret();
 
     program.setEntryPoint(entry);
-    assignInstructionData(context, 100);
+    assignInstructionData(program, 100);
 
     auto nodeAddress = [&program](Node* node)
     {

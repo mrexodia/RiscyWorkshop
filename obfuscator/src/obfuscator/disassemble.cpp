@@ -11,10 +11,9 @@ namespace obfuscator
 
 using namespace zasm;
 
-bool disassemble(Context& ctx, const uint64_t functionStart, const std::vector<uint8_t>& code, bool verbose)
+bool disassemble(ObfuscationProgram& program, const uint64_t functionStart, const std::vector<uint8_t>& code, bool verbose)
 {
-    Program& program = ctx.program;
-    auto     mode    = program.getMode();
+    auto mode = program.getMode();
 
     if (verbose)
         fmt::println("=== DISASSEMBLE ===");
@@ -23,7 +22,7 @@ bool disassemble(Context& ctx, const uint64_t functionStart, const std::vector<u
 
     auto entryLabel = assembler.createLabel("riscvm_run");
     assembler.bind(entryLabel);
-    ctx.addInstructionData(assembler.getCursor(), functionStart, mode, {});
+    program.addInstructionData(assembler.getCursor(), functionStart, mode, {});
     program.setEntryPoint(entryLabel);
 
     std::map<uint64_t, Node*> nodes;
@@ -58,7 +57,7 @@ bool disassemble(Context& ctx, const uint64_t functionStart, const std::vector<u
                 fmt::println("Failed to emit instruction {:#x}, {}", curAddress, res.getErrorName());
                 return false;
             }
-            ctx.addInstructionData(assembler.getCursor(), curAddress, mode, detail);
+            program.addInstructionData(assembler.getCursor(), curAddress, mode, detail);
             return true;
         };
 
@@ -83,7 +82,7 @@ bool disassemble(Context& ctx, const uint64_t functionStart, const std::vector<u
             if (verbose)
                 fmt::println("UncondBR: {:#x}", dest);
             assembler.emit(detail.getMnemonic(), createLabel(dest));
-            ctx.addInstructionData(assembler.getCursor(), curAddress, mode, detail);
+            program.addInstructionData(assembler.getCursor(), curAddress, mode, detail);
         }
         break;
 
@@ -95,7 +94,7 @@ bool disassemble(Context& ctx, const uint64_t functionStart, const std::vector<u
             if (verbose)
                 fmt::println("CondBr: {:#x}, {:#x}", brtrue, brfalse);
             assembler.emit(detail.getMnemonic(), createLabel(brtrue));
-            ctx.addInstructionData(assembler.getCursor(), curAddress, mode, detail);
+            program.addInstructionData(assembler.getCursor(), curAddress, mode, detail);
         }
         break;
 
@@ -141,7 +140,7 @@ bool disassemble(Context& ctx, const uint64_t functionStart, const std::vector<u
         assembler.setCursor(node);
         assembler.bind(label);
         auto detail = *node->get<Instruction>().getDetail(mode);
-        ctx.addInstructionData(assembler.getCursor(), address, mode, detail);
+        program.addInstructionData(assembler.getCursor(), address, mode, detail);
     }
 
     assembler.setCursor(program.getTail());

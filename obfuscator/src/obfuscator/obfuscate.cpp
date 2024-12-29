@@ -5,9 +5,8 @@ namespace obfuscator
 {
 using namespace zasm;
 
-bool obfuscate(Context& ctx, bool verbose)
+bool obfuscate(ObfuscationProgram& program, bool verbose)
 {
-    Program&       program = ctx.program;
     x86::Assembler assembler(program);
 
     // Ideas:

@@ -45,13 +45,9 @@ struct InstructionData
 };
 
 // Stores additional data for nodes in the zasm::Program
-struct Context
+struct ObfuscationProgram : zasm::Program
 {
-    zasm::Program& program;
-
-    explicit Context(zasm::Program& program) : program(program)
-    {
-    }
+    using zasm::Program::Program;
 
     InstructionData* addInstructionData(
         zasm::Node* node, uint64_t address, zasm::MachineMode mode, const zasm::InstructionDetail& detail

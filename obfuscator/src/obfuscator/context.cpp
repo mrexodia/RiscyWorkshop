@@ -137,7 +137,7 @@ uint32_t regMask(const Reg& reg)
 }
 
 InstructionData*
-Context::addInstructionData(Node* node, uint64_t address, MachineMode mode, const InstructionDetail& detail)
+ObfuscationProgram::addInstructionData(Node* node, uint64_t address, MachineMode mode, const InstructionDetail& detail)
 {
     auto data = node->getUserData<InstructionData>();
     if (data == nullptr)
