@@ -133,17 +133,7 @@ uint32_t regMask(const Reg& reg)
         return 0;
     }
 
-    auto mask = 1u << reg.getIndex();
-#ifdef _DEBUG
-    auto maskText = formatRegsMask(mask);
-    auto regText  = formatter::toString(reg);
-    for (auto& ch : regText)
-        ch = std::toupper(ch);
-    regText = "(" + regText + ")";
-    if (maskText != regText)
-        __debugbreak();
-#endif
-    return mask;
+    return 1u << reg.getIndex();
 }
 
 InstructionData*
