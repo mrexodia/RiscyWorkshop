@@ -11,7 +11,7 @@ namespace obfuscator
 
 using namespace zasm;
 
-bool disassemble(ObfuscationProgram& program, const uint64_t functionStart, const std::vector<uint8_t>& code, bool verbose)
+bool disassemble(ObfuscationProgram& program, const char* name, const uint64_t functionStart, const std::vector<uint8_t>& code, bool verbose)
 {
     auto mode = program.getMode();
 
@@ -20,7 +20,7 @@ bool disassemble(ObfuscationProgram& program, const uint64_t functionStart, cons
     zasm::Decoder  decoder(mode);
     x86::Assembler assembler(program);
 
-    auto entryLabel = assembler.createLabel("riscvm_run");
+    auto entryLabel = assembler.createLabel(name);
     assembler.bind(entryLabel);
     program.addInstructionData(assembler.getCursor(), functionStart, mode, {});
     program.setEntryPoint(entryLabel);

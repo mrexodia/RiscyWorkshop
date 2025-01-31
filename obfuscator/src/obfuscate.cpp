@@ -189,7 +189,7 @@ int main(int argc, char** argv)
     fmt::println("riscvm_run address: {:#x}, size: {:#x}", riscvmRunAddress, riscvmRunCode.size());
 
     ObfuscationProgram program(MachineMode::AMD64);
-    if (!disassemble(program, riscvmRunAddress, riscvmRunCode, verbose))
+    if (!disassemble(program, "riscvm_run", riscvmRunAddress, riscvmRunCode, verbose))
     {
         fmt::println("Failed to disassemble riscvm_run function.");
         return EXIT_FAILURE;
