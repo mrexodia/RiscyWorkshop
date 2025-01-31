@@ -26,7 +26,6 @@ struct Arguments : ArgumentParser
     std::string input;
     std::string output;
     std::string cleanOutput;
-    std::string payload;
     bool        verbose = false;
 
     Arguments(int argc, char** argv) : ArgumentParser("Obfuscates the riscvm_run function")
@@ -34,7 +33,6 @@ struct Arguments : ArgumentParser
         addPositional("input", input, "Input PE file to obfuscate", true);
         addString("-output", output, "Obfuscated function binary blob");
         addString("-clean-output", cleanOutput, "Unobfuscated function binary blob");
-        addString("-payload", payload, "Payload to execute (Windows only)");
         addBool("-verbose", verbose, "Verbose output");
         parseOrExit(argc, argv);
     }
