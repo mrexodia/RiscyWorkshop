@@ -61,12 +61,19 @@ Expected<CFG, std::string> CFG::analyze(const zasm::Program& program, Label entr
             auto instr = node->getIf<Instruction>();
             if (instr == nullptr)
             {
+                // End label
+                if (node->getNext() == nullptr)
+                {
+                    break;
+                }
+
                 auto label = node->getIf<Label>();
                 if (label == nullptr)
                 {
                     fmt::println("not label!");
                     __debugbreak();
                 }
+                
                 queue.push_back(*label);
                 bb.successors.push_back(*label);
                 if (verbose)
