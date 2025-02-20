@@ -202,8 +202,8 @@ int main(int argc, char** argv)
     }
 
     // Perform liveness analysis
-    auto livenessBlocks      = cfg->getLivenessBlocks(verbose);
-    auto instructionLiveness = cfg->getInstructionLiveness(livenessBlocks, verbose);
+    auto blockLiveness       = cfg->getBlockLiveness(verbose);
+    auto instructionLiveness = cfg->getInstructionLiveness(blockLiveness, verbose);
 
     // Add liveness information to the instruction data
     for (const auto& instruction : instructionLiveness)
@@ -215,7 +215,7 @@ int main(int argc, char** argv)
 
     if (verbose)
     {
-        dumpLiveness(*cfg, livenessBlocks);
+        dumpLiveness(*cfg, blockLiveness);
     }
 
     auto serializeToFile = [&program](const std::string& outputFile, uint64_t base = 0)

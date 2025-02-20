@@ -52,7 +52,7 @@ class CFG
     analyze(const zasm::Program& program, zasm::Label entry, bool verbose = false);
 
     std::map<uint64_t, std::set<uint64_t>> getPredecessors() const;
-    std::map<uint64_t, BlockLiveness>      getLivenessBlocks(bool verbose = false) const;
+    std::map<uint64_t, BlockLiveness>      getBlockLiveness(bool verbose = false) const;
     std::vector<InstructionLiveness>
     getInstructionLiveness(const std::map<uint64_t, BlockLiveness>& blockLiveness, bool verbose = false) const;
 };

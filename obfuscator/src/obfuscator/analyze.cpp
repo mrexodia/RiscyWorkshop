@@ -23,18 +23,18 @@ Expected<CFG, std::string> CFG::analyze(const zasm::Program& program, Label entr
     }
     std::vector<Label> queue;
     queue.push_back(entry);
-    std::set<Label::Id> visisted;
+    std::set<Label::Id> visited;
 
     while (!queue.empty())
     {
         auto blockStartLabel = queue.back();
         queue.pop_back();
 
-        if (visisted.count(blockStartLabel.getId()))
+        if (visited.count(blockStartLabel.getId()))
         {
             continue;
         }
-        visisted.insert(blockStartLabel.getId());
+        visited.insert(blockStartLabel.getId());
 
         const auto& labelData    = *program.getLabelData(blockStartLabel);
         auto        blockAddress = labelData.node->getUserData<InstructionData>()->address;
@@ -183,7 +183,7 @@ std::map<uint64_t, std::set<uint64_t>> CFG::getPredecessors() const
     return predecessors;
 }
 
-std::map<uint64_t, BlockLiveness> CFG::getLivenessBlocks(bool verbose) const
+std::map<uint64_t, BlockLiveness> CFG::getBlockLiveness(bool verbose) const
 {
     // Perform liveness analysis on the control flow graph
     // https://en.wikipedia.org/wiki/Live-variable_analysis
@@ -193,7 +193,7 @@ std::map<uint64_t, BlockLiveness> CFG::getLivenessBlocks(bool verbose) const
     // does not take into account the next iteration of the loop"
 
     // Compute the GEN and KILL sets for each block
-    std::map<uint64_t, BlockLiveness> livenessBlocks;
+    std::map<uint64_t, BlockLiveness> blockLiveness;
     for (auto& [address, block] : blocks)
     {
         if (verbose)
@@ -202,7 +202,7 @@ std::map<uint64_t, BlockLiveness> CFG::getLivenessBlocks(bool verbose) const
             fmt::println("Analyzing block {:#x}\n==========\n{}\n==========", address, str);
         }
 
-        auto& liveness = livenessBlocks[address];
+        auto& liveness = blockLiveness[address];
         for (auto node = block.begin; node != block.end; node = node->getNext())
         {
             auto  data   = node->getUserData<InstructionData>();
@@ -246,7 +246,7 @@ std::map<uint64_t, BlockLiveness> CFG::getLivenessBlocks(bool verbose) const
         auto address = worklist.front();
         worklist.pop();
 
-        auto&         liveness       = livenessBlocks.at(address);
+        auto&         liveness       = blockLiveness.at(address);
         auto          newRegsLiveIn  = liveness.regsGen | (liveness.regsLiveOut & ~liveness.regsKill);
         InstrCPUFlags newFlagsLiveIn = liveness.flagsGen | (liveness.flagsLiveOut & ~liveness.flagsKill);
         if (newRegsLiveIn != liveness.regsLiveIn || newFlagsLiveIn != liveness.flagsLiveIn)
@@ -258,7 +258,7 @@ std::map<uint64_t, BlockLiveness> CFG::getLivenessBlocks(bool verbose) const
             // Update the LIVEout sets in the predecessors and add them to the worklist
             for (const auto& predecessor : predecessors.at(address))
             {
-                auto& predecessorBlock = livenessBlocks.at(predecessor);
+                auto& predecessorBlock = blockLiveness.at(predecessor);
                 predecessorBlock.regsLiveOut |= newRegsLiveIn;
                 predecessorBlock.flagsLiveOut = predecessorBlock.flagsLiveOut | newFlagsLiveIn;
                 worklist.push(predecessor);
@@ -266,7 +266,7 @@ std::map<uint64_t, BlockLiveness> CFG::getLivenessBlocks(bool verbose) const
         }
     }
 
-    return livenessBlocks;
+    return blockLiveness;
 }
 
 std::vector<InstructionLiveness>
