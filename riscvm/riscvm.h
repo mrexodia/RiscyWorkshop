@@ -18,6 +18,7 @@ extern bool g_trace;
     do                       \
     {                        \
         printf(__VA_ARGS__); \
+        fflush(stdout);      \
         __debugbreak();      \
     } while (0)
 
@@ -71,7 +72,7 @@ extern bool g_trace;
 
 #endif // TRACING
 
-#define reg_read(idx) (int64_t) self->regs[idx]
+#define reg_read(idx) (int64_t)self->regs[idx]
 
 #define reg_write(idx, value)        \
     do                               \

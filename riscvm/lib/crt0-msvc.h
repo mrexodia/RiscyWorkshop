@@ -98,6 +98,25 @@ typedef struct _LDR_DATA_TABLE_ENTRY
 #define CONTAINING_RECORD(address, type, field) \
     ((type*)((char*)(address) - (unsigned long)(&((type*)0)->field)))
 
+// x65599 (case insensitive)
+__attribute__((always_inline)) static uint32_t hash_module(const wchar_t* buffer)
+{
+    uint32_t hash = 0;
+    for (; *buffer != '\0'; buffer++)
+    {
+        char ch = *buffer;
+        if (ch >= L'a')
+        {
+            if (ch <= L'z')
+            {
+                ch -= L' ';
+            }
+        }
+        hash = ch + 65599 * hash;
+    }
+    return hash;
+}
+
 uintptr_t riscvm_resolve_dll(uint32_t module_hash)
 {
     static PEB* peb = 0;
@@ -109,7 +128,14 @@ uintptr_t riscvm_resolve_dll(uint32_t module_hash)
     for (LIST_ENTRY* itr = begin->Flink; itr != begin; itr = itr->Flink)
     {
         LDR_DATA_TABLE_ENTRY* entry = CONTAINING_RECORD(itr, LDR_DATA_TABLE_ENTRY, InLoadOrderLinks);
-        if (entry->BaseNameHashValue == module_hash)
+        uint32_t              BaseNameHashValue = entry->BaseNameHashValue;
+        if (BaseNameHashValue == 0)
+        {
+            // HACK: this is for compatibility with Wine
+            BaseNameHashValue = hash_module(entry->BaseDllName.Buffer);
+        }
+
+        if (BaseNameHashValue == module_hash)
         {
             return (uintptr_t)entry->DllBase;
         }
@@ -117,20 +143,14 @@ uintptr_t riscvm_resolve_dll(uint32_t module_hash)
     return 0;
 }
 
-__attribute__((always_inline)) static uint32_t hash_x65599(const char* buffer, bool case_sensitive)
+// x65599 (case sensitive)
+__attribute__((always_inline)) static uint32_t hash_import(const char* buffer)
 {
     uint32_t hash = 0;
     for (; *buffer != '\0'; buffer++)
     {
         char ch = *buffer;
-        if (!case_sensitive && ch >= L'a')
-        {
-            if (ch <= L'z')
-            {
-                ch -= L' ';
-            }
-        }
-        hash = ch + 65599 * hash;
+        hash    = ch + 65599 * hash;
     }
     return hash;
 }
@@ -287,7 +307,7 @@ uintptr_t riscvm_resolve_import(uintptr_t image, uint32_t export_hash)
         // Ignore forwarded exports (TODO: handle properly?)
         if (func >= (uintptr_t)export_dir && func < (uintptr_t)export_dir + export_dir_size)
             continue;
-        uint32_t hash = hash_x65599(name, true);
+        uint32_t hash = hash_import(name);
         if (hash == export_hash)
         {
             return func;

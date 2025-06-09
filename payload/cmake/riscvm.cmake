@@ -11,25 +11,33 @@ set(EMBED_TYPE "post-merge-pre-opt") # post-merge-pre-opt/optimized
 if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") # clang-cl
     add_compile_options(-flto)
     add_link_options(/mllvm:-lto-embed-bitcode=${EMBED_TYPE})
-elseif(WIN32) # clang (Windows)
+elseif(WIN32 AND CMAKE_HOST_SYSTEM_NAME MATCHES "Windows") # clang (Windows)
     add_compile_options(-fuse-ld=lld-link -flto)
     add_link_options(-Wl,/mllvm:-lto-embed-bitcode=${EMBED_TYPE})
 else() # clang (unix)
     add_compile_options(-fuse-ld=lld-link -flto)
-    add_link_options(-mllvm -lto-embed-bitcode=${EMBED_TYPE})
+    add_link_options(-Wl,--plugin-opt=-lto-embed-bitcode=${EMBED_TYPE} -static)
 endif()
 
 # Some common annoying warnings when including Windows.h
 add_compile_options(-Wno-pragma-pack -Wno-microsoft-enum-forward-reference)
 
 # Find the regular LLVM toolchain
+# TODO: support zig cross-compilation toolchain
 get_filename_component(LLVM_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
 find_program(CLANG_EXECUTABLE clang PATHS "${LLVM_DIR}" NO_DEFAULT_PATH REQUIRED)
 message(STATUS "Found clang: ${CLANG_EXECUTABLE}")
+# TODO: execute clang -print-targets and make sure riscv64 is in the output
+
+# TODO: can we use the clang executable itself as a fallback?
 find_program(LLD_EXECUTABLE ld.lld PATHS "${LLVM_DIR}" NO_DEFAULT_PATH REQUIRED)
 message(STATUS "Found lld: ${LLD_EXECUTABLE}")
+# TODO: execute ld.lld --version and make sure it works
+
+# TODO: is there a cmake variable for this?
 find_program(OBJCOPY_EXECUTABLE llvm-objcopy PATHS "${LLVM_DIR}" NO_DEFAULT_PATH REQUIRED)
 message(STATUS "Found llvm-objcopy: ${OBJCOPY_EXECUTABLE}")
+# TODO: execute llvm-objcopy --version and make sure it works
 
 set(RISCVM_DIR "${CMAKE_CURRENT_LIST_DIR}/../../riscvm" CACHE PATH "Path to the riscvm directory")
 
@@ -72,6 +80,7 @@ execute_process(
     COMMAND_ERROR_IS_FATAL ANY
 )
 string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" TRANSPILER_VERSION "${TRANSPILER_VERSION}")
+message(STATUS "Transpiler LLVM version: ${TRANSPILER_VERSION}")
 string(REGEX MATCH "^[0-9]+" TRANSPILER_MAJOR_VERSION "${TRANSPILER_VERSION}")
 if(NOT TRANSPILER_MAJOR_VERSION EQUAL CLANG_MAJOR_VERSION)
     message(FATAL_ERROR "Transpiler version (${TRANSPILER_VERSION}) incompatible with Clang version (${CLANG_VERSION})")

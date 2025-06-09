@@ -21,7 +21,7 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 	set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 	# Create a configure-time dependency on cmake.toml to improve IDE support
-	configure_file(cmake.toml cmake.toml COPYONLY)
+	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS cmake.toml)
 endif()
 
 # Variables

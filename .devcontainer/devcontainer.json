@@ -1,0 +1,27 @@
+{
+    "name": "riscyworkshop",
+    "image": "ghcr.io/mrexodia/riscyworkshop:latest",
+        "customizations": {
+        "vscode": {
+            "extensions": [
+                "llvm-vs-code-extensions.vscode-clangd",
+                "sunshaoce.llvmir", // LLVM IR syntax highlighting (colejcummins.llvm-syntax-highlighting, RReverser.llvm)
+                "revng.llvm-ir", // LLVM language support
+                "twxs.cmake", // CMake language support
+                "ms-vscode.cmake-tools",
+                "EditorConfig.EditorConfig",
+                "tamasfe.even-better-toml",
+                "ms-vscode.cpptools",
+                "tintinweb.graphviz-interactive-preview",
+                "esbenp.prettier-vscode",
+                "ms-python.python"
+            ]
+        }
+    },
+    "runArgs": ["--platform=linux/amd64"],
+    "remoteEnv": {
+        "CMKR_CACHE": "/root/.cache/cmkr",
+        "WINEDEBUG": "-all"
+    },
+    "postCreateCommand": "${containerWorkspaceFolder}/.devcontainer/post-create.sh"
+}

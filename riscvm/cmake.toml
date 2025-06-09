@@ -4,8 +4,8 @@ name = "riscvm"
 
 [options]
 RISCVM_DIRECT_DISPATCH = false
-RISCVM_CODE_ENCRYPTION = true
-RISCVM_OPCODE_SHUFFLING = true
+RISCVM_CODE_ENCRYPTION = false
+RISCVM_OPCODE_SHUFFLING = false
 RISCVM_DEBUG_SYSCALLS = true
 RISCVM_SILENT_PANIC = false
 RISCVM_TRACING = false
@@ -15,13 +15,10 @@ RISCVM_CUSTOM_SYSCALLS = false
 type = "interface"
 compile-features = ["cxx_std_17"]
 RISCVM_DIRECT_DISPATCH.compile-definitions = ["DIRECT_DISPATCH"]
-RISCVM_CODE_ENCRYPTION.compile-definitions = ["CODE_ENCRYPTION"]
-RISCVM_OPCODE_SHUFFLING.compile-definitions = ["OPCODE_SHUFFLING"]
-RISCVM_DEBUG_SYSCALLS.compile-definitions = ["DEBUG_SYSCALLS"]
 RISCVM_SILENT_PANIC.compile-definitions = ["SILENT_PANIC"]
 RISCVM_TRACING.compile-definitions = ["TRACING"]
-clang-cl.compile-options = ["/clang:-fno-jump-tables", "/clang:-mno-sse"]
-clang.compile-options = ["-fno-jump-tables", "-mno-sse"]
+clang-cl.compile-options = ["/clang:-fno-jump-tables", "/clang:-fno-slp-vectorize", "/clang:-fno-vectorize", "/clang:-mno-sse"]
+clang.compile-options = ["-fno-jump-tables", "-fno-slp-vectorize", "-fno-vectorize"]
 apple.compile-options = ["-Wno-deprecated-declarations"]
 msvc.link-options = ["/DYNAMICBASE:NO", "/INCREMENTAL:NO"]
 msvc.compile-definitions = ["_CRT_SECURE_NO_WARNINGS"]
@@ -30,15 +27,15 @@ msvc.compile-definitions = ["_CRT_SECURE_NO_WARNINGS"]
 type = "executable"
 sources = ["main.cpp", "riscvm.cpp"]
 headers = ["riscvm.h", "opcodes.h", "shuffled_opcodes.h", "trace.h", "riscvm-code.h"]
-compile-features = ["cxx_std_17"]
+RISCVM_DEBUG_SYSCALLS.compile-definitions = ["DEBUG_SYSCALLS"]
+RISCVM_CODE_ENCRYPTION.compile-definitions = ["CODE_ENCRYPTION"]
+RISCVM_OPCODE_SHUFFLING.compile-definitions = ["OPCODE_SHUFFLING"]
 RISCVM_CUSTOM_SYSCALLS.compile-definitions = ["CUSTOM_SYSCALLS"]
 link-libraries = ["riscvm-options"]
 
 [target.tests]
 type = "executable"
 sources = ["tests.cpp", "riscvm.cpp"]
-compile-features = ["cxx_std_17"]
-RISCVM_TRACING.compile-definitions = ["TRACING"]
 compile-definitions = ["CUSTOM_SYSCALLS"]
 link-libraries = ["riscvm-options"]
 

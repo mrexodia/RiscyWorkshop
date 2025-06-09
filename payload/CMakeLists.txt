@@ -7,6 +7,9 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
 	message(FATAL_ERROR "In-tree builds are not supported. Run CMake from a separate directory: cmake -B build")
 endif()
 
+# Enable support for MSVC_RUNTIME_LIBRARY
+cmake_policy(SET CMP0091 NEW)
+
 set(CMKR_ROOT_PROJECT OFF)
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 	set(CMKR_ROOT_PROJECT ON)
@@ -21,13 +24,11 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 	set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 	# Create a configure-time dependency on cmake.toml to improve IDE support
-	configure_file(cmake.toml cmake.toml COPYONLY)
-endif()
+	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS cmake.toml)
+	if(NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
+		set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+	endif()
 
-# Enable support for MSVC_RUNTIME_LIBRARY
-cmake_policy(SET CMP0091 NEW)
-if(NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
-	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
 set(CMAKE_CONFIGURATION_TYPES Debug Release)
@@ -51,9 +52,8 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${riscvm-crt0_SOURCES})
 set(payload_SOURCES
 	cmake.toml
 	"crt/minicrt.c"
-	"crt/minicrt.cpp"
 	"include/phnt.h"
-	"src/main.cpp"
+	"src/main.c"
 )
 
 add_riscvm_executable(payload)
@@ -65,10 +65,19 @@ target_compile_definitions(payload PRIVATE
 	_HAS_EXCEPTIONS=0
 )
 
-target_compile_options(payload PRIVATE
-	"/GR-"
-	"/EHs-"
-)
+if(MSVC) # msvc
+	target_compile_options(payload PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(payload PRIVATE
+		-fno-exceptions
+		-fno-rtti
+	)
+endif()
 
 target_compile_features(payload PRIVATE
 	cxx_std_17

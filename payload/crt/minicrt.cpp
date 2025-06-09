@@ -1,4 +1,4 @@
-#include <phnt.h>
+#include <windows.h>
 #include <stdlib.h>
 #include <exception>
 
@@ -65,6 +65,8 @@ void __cdecl _Throw_Cpp_error(int Code)
     DebugBreak();
 }
 
+#if 0 // TODO: libcpp
+
 _Prhand _Raise_handler = [](const stdext::exception&)
 {
     DebugBreak();
@@ -81,5 +83,6 @@ _Lockit::_Lockit(int _Kind) noexcept
 _Lockit::~_Lockit() noexcept
 {
 }
+#endif
 
 } // namespace std

@@ -1,0 +1,15 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "tracing",
+            "binaryDir": "${sourceDir}/build",
+            "toolchainFile": "${sourceDir}/../llvm-mingw.cmake",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "RISCVM_TRACING": "ON"
+            }
+        }
+    ]
+}

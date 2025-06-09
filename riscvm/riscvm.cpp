@@ -193,7 +193,11 @@ ALWAYS_INLINE static bool riscvm_handle_syscall(riscvm_ptr self, uint64_t code, 
     case 20001: // get_peb
     {
 #ifdef _WIN32
+#ifdef __clang__
+        result = *(volatile uint64_t __attribute__((address_space(256)))*)0x60;
+#else
         result = __readgsqword(0x60);
+#endif
 #else
 #pragma message("get_peb unsupported on this platform")
 #endif // _WIN32

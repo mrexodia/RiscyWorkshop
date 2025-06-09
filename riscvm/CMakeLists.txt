@@ -21,13 +21,13 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 	set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 	# Create a configure-time dependency on cmake.toml to improve IDE support
-	configure_file(cmake.toml cmake.toml COPYONLY)
+	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS cmake.toml)
 endif()
 
 # Options
 option(RISCVM_DIRECT_DISPATCH "" OFF)
-option(RISCVM_CODE_ENCRYPTION "" ON)
-option(RISCVM_OPCODE_SHUFFLING "" ON)
+option(RISCVM_CODE_ENCRYPTION "" OFF)
+option(RISCVM_OPCODE_SHUFFLING "" OFF)
 option(RISCVM_DEBUG_SYSCALLS "" ON)
 option(RISCVM_SILENT_PANIC "" OFF)
 option(RISCVM_TRACING "" OFF)
@@ -41,24 +41,6 @@ add_library(riscvm-options INTERFACE)
 if(RISCVM_DIRECT_DISPATCH) # RISCVM_DIRECT_DISPATCH
 	target_compile_definitions(riscvm-options INTERFACE
 		DIRECT_DISPATCH
-	)
-endif()
-
-if(RISCVM_CODE_ENCRYPTION) # RISCVM_CODE_ENCRYPTION
-	target_compile_definitions(riscvm-options INTERFACE
-		CODE_ENCRYPTION
-	)
-endif()
-
-if(RISCVM_OPCODE_SHUFFLING) # RISCVM_OPCODE_SHUFFLING
-	target_compile_definitions(riscvm-options INTERFACE
-		OPCODE_SHUFFLING
-	)
-endif()
-
-if(RISCVM_DEBUG_SYSCALLS) # RISCVM_DEBUG_SYSCALLS
-	target_compile_definitions(riscvm-options INTERFACE
-		DEBUG_SYSCALLS
 	)
 endif()
 
@@ -87,6 +69,8 @@ target_compile_features(riscvm-options INTERFACE
 if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang-cl
 	target_compile_options(riscvm-options INTERFACE
 		"/clang:-fno-jump-tables"
+		"/clang:-fno-slp-vectorize"
+		"/clang:-fno-vectorize"
 		"/clang:-mno-sse"
 	)
 endif()
@@ -94,7 +78,8 @@ endif()
 if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
 	target_compile_options(riscvm-options INTERFACE
 		-fno-jump-tables
-		-mno-sse
+		-fno-slp-vectorize
+		-fno-vectorize
 	)
 endif()
 
@@ -128,15 +113,29 @@ add_executable(riscvm)
 target_sources(riscvm PRIVATE ${riscvm_SOURCES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${riscvm_SOURCES})
 
+if(RISCVM_DEBUG_SYSCALLS) # RISCVM_DEBUG_SYSCALLS
+	target_compile_definitions(riscvm PRIVATE
+		DEBUG_SYSCALLS
+	)
+endif()
+
+if(RISCVM_CODE_ENCRYPTION) # RISCVM_CODE_ENCRYPTION
+	target_compile_definitions(riscvm PRIVATE
+		CODE_ENCRYPTION
+	)
+endif()
+
+if(RISCVM_OPCODE_SHUFFLING) # RISCVM_OPCODE_SHUFFLING
+	target_compile_definitions(riscvm PRIVATE
+		OPCODE_SHUFFLING
+	)
+endif()
+
 if(RISCVM_CUSTOM_SYSCALLS) # RISCVM_CUSTOM_SYSCALLS
 	target_compile_definitions(riscvm PRIVATE
 		CUSTOM_SYSCALLS
 	)
 endif()
-
-target_compile_features(riscvm PRIVATE
-	cxx_std_17
-)
 
 target_link_libraries(riscvm PRIVATE
 	riscvm-options
@@ -159,18 +158,8 @@ add_executable(tests)
 target_sources(tests PRIVATE ${tests_SOURCES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${tests_SOURCES})
 
-if(RISCVM_TRACING) # RISCVM_TRACING
-	target_compile_definitions(tests PRIVATE
-		TRACING
-	)
-endif()
-
 target_compile_definitions(tests PRIVATE
 	CUSTOM_SYSCALLS
-)
-
-target_compile_features(tests PRIVATE
-	cxx_std_17
 )
 
 target_link_libraries(tests PRIVATE

@@ -12,8 +12,9 @@ msvc-runtime = "static"
 [template.riscvm]
 type = "executable"
 add-function = "add_riscvm_executable"
-compile-options = ["/GR-", "/EHs-"]
-compile-definitions = ["_HAS_EXCEPTIONS=0"]
+msvc.compile-options = ["/GR-", "/EHs-"]
+clang.compile-options = ["-fno-exceptions", "-fno-rtti"]
+compile-definitions = ["_HAS_EXCEPTIONS=0"] # TODO: MSVC only?
 
 # Windows implementation of the riscvm syscalls (for debugging only)
 [target.riscvm-crt0]
@@ -23,9 +24,9 @@ sources = ["crt/riscvm-crt0.cpp"]
 [target.payload]
 type = "riscvm"
 sources = [
-    "src/main.cpp",
+    "src/main.c",
     "crt/minicrt.c",
-    "crt/minicrt.cpp",
+    #"crt/minicrt.cpp",
 ]
 headers = [
     "include/phnt.h",

@@ -1,10 +1,24 @@
 #include <cstddef>
 #include <memory>
 #include <vector>
+#include <cstdlib>
+#include <cstring>
 
 #include "riscvm.h"
 #include "riscvm-code.h"
 #include "isa-tests/data.h"
+
+#ifdef OPCODE_SHUFFLING
+#error "opcode shuffling is not supported in tests"
+#endif // OPCODE_SHUFFLING
+
+#ifdef CODE_ENCRYPTION
+#error "code encryption is not supported in tests"
+#endif // CODE_ENCRYPTION
+
+#ifndef CUSTOM_SYSCALLS
+#error "custom syscalls are required for tests"
+#endif // CUSTOM_SYSCALLS
 
 int main(int argc, char** argv)
 {

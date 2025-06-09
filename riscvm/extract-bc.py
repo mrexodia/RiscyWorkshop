@@ -1,5 +1,6 @@
 import argparse
 import sys
+import os
 
 import pefile
 
@@ -192,6 +193,10 @@ def main():
     output: str = args.output
     importmap: str = args.importmap
 
+    if not os.path.exists(executable):
+        print(f"File not found: {executable}")
+        sys.exit(1)
+
     # Find the .llvmbc section
     pe = pefile.PE(executable)
     llvmbc = None
@@ -200,7 +205,7 @@ def main():
             llvmbc = section
             break
     if llvmbc is None:
-        print("No .llvmbc section found")
+        print("No .llvmbc section found: " + executable)
         sys.exit(1)
 
     # Save the import map

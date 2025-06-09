@@ -1,0 +1,19 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "default",
+            "binaryDir": "${sourceDir}/build",
+            "toolchainFile": "${sourceDir}/../llvm-mingw.cmake",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CLANG_EXECUTABLE": "/usr/bin/clang-20",
+                "LLD_EXECUTABLE": "/usr/bin/ld.lld-20",
+                "OBJCOPY_EXECUTABLE": "/usr/bin/llvm-objcopy-20",
+                "TRANSPILER_EXECUTABLE": "${sourceDir}/../transpiler/build/transpiler"
+
+            }
+        }
+    ]
+}

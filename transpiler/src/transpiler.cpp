@@ -344,7 +344,7 @@ static void ProcessModule(Module& module, const ImportMap& importmap)
 
         // Collect imported functions
         auto name = function.getName();
-        if (function.hasDLLImportStorageClass() && !name.startswith("riscvm_"))
+        if (function.hasDLLImportStorageClass() && !name.starts_with("riscvm_"))
         {
             importedFunctions.push_back(&function);
         }

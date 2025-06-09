@@ -13,6 +13,7 @@ build*/
 *.exe
 *.dll
 *.pdb
+*.trace
 
 __pycache__/
 

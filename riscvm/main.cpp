@@ -1,6 +1,6 @@
-#include <cstring>
-#include <cstddef>
-#include <cstdlib>
+#include <string.h>
+#include <stddef.h>
+#include <stdlib.h>
 
 #include "riscvm.h"
 #include "riscvm-code.h"
