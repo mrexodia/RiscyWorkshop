@@ -10,7 +10,7 @@ build*/
 *.map
 *.bc
 *.ll
-*.exe
+**/*.exe
 *.dll
 *.pdb
 *.trace
@@ -19,3 +19,6 @@ __pycache__/
 
 # macos
 .DS_Store
+
+# Wine bootstrap
+!/.devcontainer/hello.exe

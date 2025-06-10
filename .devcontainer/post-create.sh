@@ -1,2 +1,4 @@
 #!/bin/bash
-echo "Working directory: $PWD"
+wine .devcontainer/hello.exe
+cmake -B transpiler/build -S transpiler
+cmake --build transpiler/build
