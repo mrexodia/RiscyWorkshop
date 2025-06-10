@@ -1,0 +1,55 @@
+{
+    "files.exclude": {
+        "**/.cache": true,
+        "**/.clang-format": true,
+        "**/.editorconfig": true,
+        "**/.gitattributes": true,
+        "**/.gitignore": true,
+        "**/.vscode": true,
+        "**/.github": true
+    },
+    "files.autoSave": "off",
+    "workbench.startupEditor": "none",
+    "editor.formatOnSave": false,
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "[cpp]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+    },
+    "[c]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+    },
+    "[json]": {
+        "editor.formatOnSave": true
+    },
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}/build",
+        "-header-insertion=never",
+        "--function-arg-placeholders=0"
+    ],
+    "cmake.configureOnOpen": false,
+    "cmake.useCMakePresets": "always",
+    "cmake.options.statusBarVisibility": "hidden",
+    "cmake.ignoreCMakeListsMissing": true,
+    "cmake.showOptionsMovedNotification": false, // https://github.com/microsoft/vscode-cmake-tools/issues/3423#issuecomment-2002011868
+    "cmake.skipConfigureIfCachePresent": false,
+    "cmake.options.advanced": {
+        "build": {
+            "statusBarVisibility": "visible"
+        },
+        "launch": {
+            "statusBarVisibility": "visible"
+        },
+        "debug": {
+            "statusBarVisibility": "visible"
+        },
+        "buildTarget": {
+            "statusBarVisibility": "visible"
+        },
+        "launchTarget": {
+            "statusBarVisibility": "visible"
+        }
+    },
+    "git.blame.editorDecoration.enabled": false
+}
