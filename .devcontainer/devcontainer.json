@@ -16,6 +16,9 @@
                 "esbenp.prettier-vscode",
                 "ms-python.python"
             ]
+        },
+        "codespaces": {
+            "openFiles": ["README.md"]
         }
     },
     "runArgs": ["--platform=linux/amd64"],

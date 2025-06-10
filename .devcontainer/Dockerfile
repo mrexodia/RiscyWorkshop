@@ -56,8 +56,8 @@ ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8 \
     LC_ALL=C.UTF-8 \
     DISPLAY=:0.0 \
-    DISPLAY_WIDTH=1024 \
-    DISPLAY_HEIGHT=768 \
+    DISPLAY_WIDTH=1280 \
+    DISPLAY_HEIGHT=720 \
     RUN_XTERM=yes \
     RUN_FLUXBOX=yes
 RUN cp /usr/share/novnc/vnc_lite.html /usr/share/novnc/index.html
