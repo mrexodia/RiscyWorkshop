@@ -90,9 +90,20 @@ static void HandleImports(Module& module, const std::vector<Function*> importedF
 
     auto reservedFunction = [&](const std::string& name, FunctionType* functionTy)
     {
-        if (module.getFunction(name) != nullptr)
+        auto existingFunction = module.getFunction(name);
+        if (existingFunction != nullptr)
         {
-            throw std::runtime_error("Reserved function " + name + " already defined");
+            if (!existingFunction->empty())
+            {
+                throw std::runtime_error("Reserved function " + name + " redefined with body");
+            }
+            existingFunction->setLinkage(GlobalValue::ExternalLinkage);
+            existingFunction->setDSOLocal(false);
+            if (existingFunction->getFunctionType() != functionTy)
+            {
+                throw std::runtime_error("Reserved function " + name + " redefined with different type");
+            }
+            return existingFunction;
         }
         return Function::Create(functionTy, GlobalValue::ExternalLinkage, name, module);
     };

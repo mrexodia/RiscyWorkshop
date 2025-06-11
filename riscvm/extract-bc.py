@@ -214,6 +214,8 @@ def main():
             visited = set()
             for desc in pe.DIRECTORY_ENTRY_IMPORT:
                 dll: str = desc.dll.decode("utf-8")
+                if "riscvm-crt0" in dll:
+                    continue
                 for imp in desc.imports:
                     name: str = imp.name.decode("utf-8")
                     visited.add(name)
