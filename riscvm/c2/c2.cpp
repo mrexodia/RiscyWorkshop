@@ -4,25 +4,32 @@
 
 #include "../riscvm.h"
 
-static std::atomic<uint32_t> g_request_id = 0;
+static std::atomic<uint32_t>    g_request_id = 0;
+static thread_local std::string g_response_data;
+
+extern "C" __declspec(dllexport) void append_response(const char* data)
+{
+    g_response_data += data;
+}
 
 static void handle_riscvm(const httplib::Request& req, httplib::Response& res)
 {
     auto request_id = g_request_id.fetch_add(1);
+    g_response_data.clear();
 
     const std::string& body = req.body;
     if (body.size() < 0x10 || memcmp(body.c_str(), "RV64", 4) != 0)
     {
         res.status = 400;
         res.set_content("Invalid RV64 code", "text/plain");
-        printf("[riscvm] invalid payload header!\n");
+        printf("[c2] invalid payload header!\n");
         return;
     }
     std::vector<uint8_t> vm_code((body.size() + 0xFFF) & ~0xFFF);
     memcpy(vm_code.data(), body.c_str() + 4, body.size());
     std::vector<uint8_t> stack(0x10000);
 
-    printf("[riscvm] executing %zu byte payload\n", body.size());
+    printf("[c2] executing %zu byte payload\n", body.size());
 
     riscvm vm = {};
 #ifdef TRACING
@@ -30,7 +37,7 @@ static void handle_riscvm(const httplib::Request& req, httplib::Response& res)
     if (!trace.empty())
     {
         printf(
-            "[riscvm] tracing enabled (base: %p, first instruction: 0x%08x)\n",
+            "[c2] tracing enabled (base: %p, first instruction: 0x%08x)\n",
             vm_code.data(),
             *(uint32_t*)vm_code.data()
         );
@@ -54,9 +61,12 @@ static void handle_riscvm(const httplib::Request& req, httplib::Response& res)
     }
 #endif // TRACING
 
-    res.set_content("epoch:" + std::to_string(time(nullptr)) + "\nstatus:" + std::to_string(status), "text/plain");
+    auto response = "epoch:" + std::to_string(time(nullptr)) + "\n";
+    response += "status:" + std::to_string(status) + "\n";
+    response += "data:" + g_response_data + "\n";
+    res.set_content(response, "text/plain");
 
-    printf("[riscvm] riscvm_run returned exit code %d\n", status);
+    printf("[c2] riscvm_run returned exit code %d\n", status);
 }
 
 #define HOST "127.0.0.1"
@@ -80,7 +90,7 @@ int main(int argc, char** argv)
     );
     // curl -X POST -d @payload.bin http://127.0.0.1:13337
     svr.Post("/riscvm", handle_riscvm);
-    printf("Starting server on %s:%d\n", HOST, PORT);
+    printf("[c2] starting server on %s:%d\n", HOST, PORT);
     if (!svr.listen(HOST, PORT))
     {
         puts("Failed to start server!");
