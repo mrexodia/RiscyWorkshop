@@ -6,7 +6,7 @@
 
 #define RISCVM_SYSCALL extern "C" __declspec(dllexport)
 
-RISCVM_SYSCALL uintptr_t riscvm_host_call(uintptr_t address, uintptr_t args[13])
+RISCVM_SYSCALL void* riscvm_host_call(void* address, uintptr_t args[13])
 {
 #ifdef _DEBUG
     printf("riscvm_host_call(0x%p, 0x%p)\n", (void*)address, args);
@@ -17,7 +17,7 @@ RISCVM_SYSCALL uintptr_t riscvm_host_call(uintptr_t address, uintptr_t args[13])
     );
 
     syscall_fn fn = (syscall_fn)address;
-    return fn(
+    return (void*)fn(
         args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12]
     );
 }

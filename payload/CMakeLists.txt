@@ -48,52 +48,48 @@ add_library(riscvm-crt0 SHARED)
 target_sources(riscvm-crt0 PRIVATE ${riscvm-crt0_SOURCES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${riscvm-crt0_SOURCES})
 
-# Target: payload
-set(payload_SOURCES
+# Target: hello
+set(hello_SOURCES
 	cmake.toml
 	"crt/minicrt.c"
-	"include/phnt.h"
-	"src/main.c"
+	"src/hello.c"
 )
 
-add_riscvm_executable(payload)
+add_riscvm_executable(hello)
 
-target_sources(payload PRIVATE ${payload_SOURCES})
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${payload_SOURCES})
+target_sources(hello PRIVATE ${hello_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${hello_SOURCES})
 
-target_compile_definitions(payload PRIVATE
+target_compile_definitions(hello PRIVATE
 	_HAS_EXCEPTIONS=0
 )
 
 if(MSVC) # msvc
-	target_compile_options(payload PRIVATE
+	target_compile_options(hello PRIVATE
 		"/GR-"
 		"/EHs-"
 	)
 endif()
 
 if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
-	target_compile_options(payload PRIVATE
+	target_compile_options(hello PRIVATE
 		-fno-exceptions
 		-fno-rtti
+		-Wno-inconsistent-dllimport
 	)
 endif()
 
-target_compile_features(payload PRIVATE
-	cxx_std_17
-)
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"hello\" does not exist!")
+endif()
 
-target_include_directories(payload PRIVATE
-	include
-)
-
-target_link_libraries(payload PRIVATE
+target_link_libraries(hello PRIVATE
 	riscvm-crt0
 	ntdll.lib
 )
 
 if(MSVC) # msvc
-	target_link_options(payload PRIVATE
+	target_link_options(hello PRIVATE
 		"/INCREMENTAL:NO"
 		"/DEBUG"
 	)
@@ -101,5 +97,109 @@ endif()
 
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
 if(NOT CMKR_VS_STARTUP_PROJECT)
-	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT payload)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT hello)
+endif()
+
+# Target: msgbox
+set(msgbox_SOURCES
+	cmake.toml
+	"crt/minicrt.c"
+	"src/msgbox.c"
+)
+
+add_riscvm_executable(msgbox)
+
+target_sources(msgbox PRIVATE ${msgbox_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${msgbox_SOURCES})
+
+target_compile_definitions(msgbox PRIVATE
+	_HAS_EXCEPTIONS=0
+)
+
+if(MSVC) # msvc
+	target_compile_options(msgbox PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(msgbox PRIVATE
+		-fno-exceptions
+		-fno-rtti
+		-Wno-inconsistent-dllimport
+	)
+endif()
+
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"msgbox\" does not exist!")
+endif()
+
+target_link_libraries(msgbox PRIVATE
+	riscvm-crt0
+	ntdll.lib
+)
+
+if(MSVC) # msvc
+	target_link_options(msgbox PRIVATE
+		"/INCREMENTAL:NO"
+		"/DEBUG"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT msgbox)
+endif()
+
+# Target: c2test
+set(c2test_SOURCES
+	cmake.toml
+	"crt/minicrt.c"
+	"src/c2test.c"
+)
+
+add_riscvm_executable(c2test)
+
+target_sources(c2test PRIVATE ${c2test_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${c2test_SOURCES})
+
+target_compile_definitions(c2test PRIVATE
+	_HAS_EXCEPTIONS=0
+)
+
+if(MSVC) # msvc
+	target_compile_options(c2test PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(c2test PRIVATE
+		-fno-exceptions
+		-fno-rtti
+		-Wno-inconsistent-dllimport
+	)
+endif()
+
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"c2test\" does not exist!")
+endif()
+
+target_link_libraries(c2test PRIVATE
+	riscvm-crt0
+	ntdll.lib
+)
+
+if(MSVC) # msvc
+	target_link_options(c2test PRIVATE
+		"/INCREMENTAL:NO"
+		"/DEBUG"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT c2test)
 endif()

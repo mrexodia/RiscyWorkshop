@@ -2,6 +2,7 @@
 // #include <phnt.h>
 #include <malloc.h>
 #include <windows.h>
+#include <stdarg.h>
 
 NTSYSAPI
 void* NTAPI RtlGetCurrentPeb(VOID);
@@ -62,4 +63,20 @@ int __cdecl puts(const char* s)
     WriteFile(hStdOut, s, lstrlen(s), &cbWritten, 0);
     WriteFile(hStdOut, "\n", 1, &cbWritten, 0);
     return (int)(cbWritten ? cbWritten : -1);
+}
+
+int __cdecl printf(const char* __restrict__ fmt, ...)
+{
+#if 0
+    va_list ap;
+    va_start(ap, fmt);
+
+    char buffer[256];
+    int  result = vsprintf(buffer, sizeof(buffer), fmt, ap);
+
+    va_end(ap);
+#endif
+    // TODO: implement with something in ntdll
+    puts(fmt);
+    return 1;
 }

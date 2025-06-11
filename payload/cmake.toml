@@ -9,37 +9,30 @@ cmake-before = "set(CMAKE_CONFIGURATION_TYPES Debug Release)"
 include-after = ["cmake/riscvm.cmake"]
 msvc-runtime = "static"
 
-[template.riscvm]
-type = "executable"
-add-function = "add_riscvm_executable"
-msvc.compile-options = ["/GR-", "/EHs-"]
-clang.compile-options = ["-fno-exceptions", "-fno-rtti"]
-compile-definitions = ["_HAS_EXCEPTIONS=0"] # TODO: MSVC only?
-
 # Windows implementation of the riscvm syscalls (for debugging only)
 [target.riscvm-crt0]
 type = "shared"
 sources = ["crt/riscvm-crt0.cpp"]
 
-[target.payload]
+[template.riscvm]
+type = "executable"
+add-function = "add_riscvm_executable"
+sources = ["crt/minicrt.c"]
+msvc.compile-options = ["/GR-", "/EHs-"]
+clang.compile-options = ["-fno-exceptions", "-fno-rtti", "-Wno-inconsistent-dllimport"]
+compile-definitions = ["_HAS_EXCEPTIONS=0"] # TODO: MSVC only?
+msvc.link-options = ["/INCREMENTAL:NO", "/DEBUG"]
+link-libraries = ["::riscvm-crt0", "ntdll.lib"]
+
+[target.hello]
 type = "riscvm"
-sources = [
-    "src/main.c",
-    "crt/minicrt.c",
-    #"crt/minicrt.cpp",
-]
-headers = [
-    "include/phnt.h",
-]
-include-directories = [
-    "include",
-]
-link-libraries = [
-    "riscvm-crt0",
-    "ntdll.lib",
-]
-compile-features = ["cxx_std_17"]
-msvc.link-options = [
-    "/INCREMENTAL:NO",
-    "/DEBUG",
-]
+sources = ["src/hello.c"]
+
+[target.msgbox]
+type = "riscvm"
+sources = ["src/msgbox.c"]
+
+[target.c2test]
+type = "riscvm"
+sources = ["src/c2test.c"]
+
