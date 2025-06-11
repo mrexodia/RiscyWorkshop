@@ -171,6 +171,52 @@ if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT tests)
 endif()
 
+# Target: c2
+set(c2_SOURCES
+	"c2/c2.cpp"
+	cmake.toml
+	riscvm.cpp
+)
+
+add_executable(c2)
+
+target_sources(c2 PRIVATE ${c2_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${c2_SOURCES})
+
+if(RISCVM_DEBUG_SYSCALLS) # RISCVM_DEBUG_SYSCALLS
+	target_compile_definitions(c2 PRIVATE
+		DEBUG_SYSCALLS
+	)
+endif()
+
+if(RISCVM_CODE_ENCRYPTION) # RISCVM_CODE_ENCRYPTION
+	target_compile_definitions(c2 PRIVATE
+		CODE_ENCRYPTION
+	)
+endif()
+
+if(RISCVM_OPCODE_SHUFFLING) # RISCVM_OPCODE_SHUFFLING
+	target_compile_definitions(c2 PRIVATE
+		OPCODE_SHUFFLING
+	)
+endif()
+
+if(RISCVM_CUSTOM_SYSCALLS) # RISCVM_CUSTOM_SYSCALLS
+	target_compile_definitions(c2 PRIVATE
+		CUSTOM_SYSCALLS
+	)
+endif()
+
+target_link_libraries(c2 PRIVATE
+	riscvm-options
+	ws2_32.lib
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT c2)
+endif()
+
 # Target: riscvm-crt0
 set(riscvm-crt0_SOURCES
 	cmake.toml
