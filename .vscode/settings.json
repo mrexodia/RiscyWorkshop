@@ -14,7 +14,7 @@
     "C_Cpp.intelliSenseEngine": "disabled",
     "[cpp]": {
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+        "editor.defaultFormatter": "xaver.clang-format"
     },
     "[c]": {
         "editor.formatOnSave": true,
@@ -28,6 +28,8 @@
         "-header-insertion=never",
         "--function-arg-placeholders=0"
     ],
+    "clang-format.executable": "clang-format-20",
+    "clangd.path": "clangd-20",
     "cmake.configureOnOpen": false,
     "cmake.useCMakePresets": "always",
     "cmake.options.statusBarVisibility": "hidden",

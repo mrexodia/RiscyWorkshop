@@ -13,7 +13,8 @@
                 "ms-vscode.cpptools",
                 "tintinweb.graphviz-interactive-preview",
                 "esbenp.prettier-vscode",
-                "ms-python.python"
+                "ms-python.python",
+                "xaver.clang-format"
             ]
         },
         "codespaces": {
