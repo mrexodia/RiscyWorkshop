@@ -4,47 +4,58 @@
 
 **Article: [RISC-Y Business: Raging against the reduced machine](https://secret.club/2023/12/24/riscy-business.html).**
 
-## Prerequisites
+## Setting up the environment
 
-- Visual Studio 2022 with the `C++ Clang Compiler for Windows (16.0.5)` component
-- CMake 3.26 (earlier may work, but not recommended)
+This repository uses a [`devcontainer.json`](./.devcontainer/devcontainer.json) file to allow you to quickly get started.
 
-## riscvm
+### 1) GitHub Codespaces
 
-This folder contains the VM host (`rv64i` interpreter).
+**Using Codespaces is required for the training**
 
-To build:
+1. [Fork this repository](https://github.com/mrexodia/RiscyWorkshop/fork)
+2. Click the green `<> Code` button
+3. Press `...` and then `New with options...`
+4. Change `Machine type` to `4-core`
+5. Then `Create codespace`
+6. Wait a ~5 minutes while the image is loading ☕
+   - Press `Show log` to see progress
+   - Reload the page if it appears stuck
+   - **Firefox does not work, use Chrome!**
+
+| ![](.devcontainer/new-codespace.png) | ![](.devcontainer/machine-type.png) |
+|---|---|
+
+#### **Remember to shut down your codespace [here](https://github.com/codespaces) when you're finished.**
+
+I recommend switching to the `GitHub Dark` theme, because the syntax highlighting works better there.
+
+When prompted by the CMake tools, just close the notifications:
+
+![](.devcontainer/cmake-notifications.png)
+
+<details>
+
+<summary><sub>At a later date you can set things up locally with Docker Desktop</sub></summary>
+
+### Docker Desktop (tricky)
+
+- Install/Update [Docker Desktop](https://www.docker.com/products/docker-desktop/) ([alternatives](https://code.visualstudio.com/remote/advancedcontainers/docker-options))
+- **Start Docker Desktop**
+- Install [Visual Studio Code](https://code.visualstudio.com)
+- Clone and open this repository in VS Code (**use the HTTPS protocol**)
+- Install the [Dev Containers](vscode:extension/ms-vscode-remote.remote-containers) extension in VS Code (you should be prompted for recommended extensions)
+- Click the blue 'Reopen in Container' button when prompted (you can also find it in the command palette)
+
+For more detailed steps, check out the [Dev Containers tutorial](https://code.visualstudio.com/docs/devcontainers/tutorial). The instructions after this assume you are running _inside_ the container.
+
+#### Windows
+
+Because the host filesystem is mounted inside the container you _may_ need to configure Git to not automatically convert line endings:
 
 ```sh
-cd riscvm
-cmake -B build -T ClangCL
-cmake --build build --config RelWithDebInfo
+git config --global core.autocrlf false
 ```
 
-## transpiler
+Additionally it's recommended to configure Docker to use the WSL 2 backend.
 
-This folder contains the project responsible for changing making the LLVM Bitcode (.bc) files compatible for compilation with the `riscv64` target. This tool is the magic that allows us to build a regular Windows project with `clang-cl` and then convert that into a payload compatible with the `riscvm` host.
-
-To build:
-
-```sh
-cd transpiler
-cmake -B build -DCMAKE_PREFIX_PATH=c:/llvm-install
-cmake --build build --config RelWithDebInfo
-```
-
-The `llvm-install` is a regular LLVM installation. This should match the version of Clang used by Visual Studio (sometimes it can be later). You can use a precompiled [llvm-17.0.2-win64.7z](https://github.com/thesecretclub/riscy-business/releases/download/transpiler-v0.3/llvm-17.0.2-win64.7z) if you want to save some time building LLVM.
-
-## payload
-
-This folder contains an example payload project.
-
-To build:
-
-```sh
-cd payload
-cmake -B build -T ClangCL
-cmake --build build --config Release
-```
-
-This should give you a `payload.bin` that can be passed as an argument to `riscvm` to execute.
+</details>
