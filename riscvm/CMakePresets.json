@@ -8,6 +8,35 @@
             "generator": "Ninja",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "RISCVM_TRACING": "ON",
+                "RISCVM_DEBUG_SYSCALLS": "ON",
+                "RISCVM_OPCODE_SHUFFLING": "OFF",
+                "RISCVM_CODE_ENCRYPTION": "OFF",
+                "RISCVM_DIRECT_DISPATCH": "OFF"
+            }
+        },
+        {
+            "name": "hardening",
+            "binaryDir": "${sourceDir}/build",
+            "toolchainFile": "${sourceDir}/../llvm-mingw.cmake",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "RISCVM_TRACING": "OFF",
+                "RISCVM_DEBUG_SYSCALLS": "OFF",
+                "RISCVM_OPCODE_SHUFFLING": "ON",
+                "RISCVM_CODE_ENCRYPTION": "ON",
+                "RISCVM_DIRECT_DISPATCH": "ON"
+            }
+        },
+        {
+            "name": "linux",
+            "binaryDir": "${sourceDir}/build-linux",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "clang++-20",
+                "CMAKE_C_COMPILER": "clang-20",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "RISCVM_TRACING": "ON"
             }
         }

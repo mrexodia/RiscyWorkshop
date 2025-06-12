@@ -22,5 +22,5 @@ cmake --build payload/build
 Run the payload:
 
 ```sh
-wine riscvm/build/riscvm.exe payload/build/payload.bin
+wine riscvm/build/riscvm.exe payload/build/hello.bin
 ```

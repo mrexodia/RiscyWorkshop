@@ -1,5 +1,4 @@
 #include "httplib.h"
-#include <windows.h>
 #include <atomic>
 
 #include "../riscvm.h"
@@ -7,7 +6,13 @@
 static std::atomic<uint32_t>    g_request_id = 0;
 static thread_local std::string g_response_data;
 
-extern "C" __declspec(dllexport) void append_response(const char* data)
+#ifdef _WIN32
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT __attribute__((visibility("default")))
+#endif // _WIN32
+
+extern "C" EXPORT void append_response(const char* data)
 {
     g_response_data += data;
 }

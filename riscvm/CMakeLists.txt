@@ -209,8 +209,13 @@ endif()
 
 target_link_libraries(c2 PRIVATE
 	riscvm-options
-	ws2_32.lib
 )
+
+if(WIN32) # windows
+	target_link_libraries(c2 PRIVATE
+		ws2_32.lib
+	)
+endif()
 
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
 if(NOT CMKR_VS_STARTUP_PROJECT)
