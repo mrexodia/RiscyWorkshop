@@ -95,13 +95,16 @@ int main(int argc, char** argv)
     g_trace = argc > 2 && strcmp(argv[2], "--trace") == 0;
     if (g_trace)
     {
-        // TODO: allow custom trace file location/name
-        machine->trace = fopen("trace.txt", "w");
+        char name[256] = "";
+        sprintf(name, "%s.trace", argv[1]);
+        machine->trace = fopen(name, "w");
     }
 #endif // TRACING
 
     riscvm_run(machine);
-    exit((int)machine->regs[reg_a0]);
+    auto code = (int)machine->regs[reg_a0];
+    log("exit code: %d\n", code);
+    exit(code);
 
 #ifdef TRACING
     if (g_trace)

@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 #include "riscvm.h"
 
 const char* reg_names[] = {
@@ -19,9 +20,10 @@ int g_calldepth = 0;
     ((val) < 0 ? sprintf(buf_##val, "-0x%x", -(int32_t)(val)) : sprintf(buf_##val, "0x%x", (int32_t)(val)), \
      buf_##val)
 
-#define TO_SIGNED_HEX_64(val)                                                                                   \
-    char buf_##val[20];                                                                                         \
-    ((val) < 0 ? sprintf(buf_##val, "-0x%llx", -(int64_t)(val)) : sprintf(buf_##val, "0x%llx", (int64_t)(val)), \
+#define TO_SIGNED_HEX_64(val)                                       \
+    char buf_##val[20];                                             \
+    ((val) < 0 ? sprintf(buf_##val, "-0x%" PRIx64, -(int64_t)(val)) \
+               : sprintf(buf_##val, "0x%" PRIx64, (int64_t)(val)),  \
      buf_##val)
 
 void trace_load(riscvm_ptr self, Instruction inst, char* buffer)
@@ -582,7 +584,7 @@ void trace_jalr(riscvm_ptr self, Instruction inst, char* buffer)
         g_calldepth--;
         memnomic        = "ret";
         int64_t retaddr = (int64_t)(reg_read(inst.itype.rs1) + imm) & ~1;
-        sprintf(buffer, "%-8s (0x%llx)", memnomic, retaddr);
+        sprintf(buffer, "%-8s (0x%" PRIx64 ")", memnomic, retaddr);
     }
     else
     {
@@ -609,7 +611,7 @@ void trace_jal(riscvm_ptr self, Instruction inst, char* buffer)
     const char* ra       = reg_names[inst.ujtype.rd];
 
     TO_SIGNED_HEX_64(imm);
-    sprintf(buffer, "%-8s %s, %s -> 0x%llx", memnomic, ra, buf_imm, (self->pc + imm));
+    sprintf(buffer, "%-8s %s, %s -> 0x%" PRIx64, memnomic, ra, buf_imm, (self->pc + imm));
 }
 
 void trace_system(riscvm_ptr self, Instruction inst, char* buffer)
@@ -622,7 +624,7 @@ void trace_system(riscvm_ptr self, Instruction inst, char* buffer)
     {
         uint64_t code = reg_read(reg_a7);
         memnomic      = "ecall";
-        sprintf(buffer, "%-8s 0x%llx", memnomic, code);
+        sprintf(buffer, "%-8s 0x%" PRIx64, memnomic, code);
         return;
     }
     case 0x001:
@@ -693,7 +695,7 @@ void riscvm_trace(riscvm_ptr self, Instruction inst)
         return;
     }
 
-    fprintf(self->trace, "[trace] 0x%llx: ", self->pc + self->rebase);
+    fprintf(self->trace, "[trace] 0x%" PRIx64 ": ", self->pc + self->rebase);
 
     for (int i = 0; i < calldepth; i++)
     {

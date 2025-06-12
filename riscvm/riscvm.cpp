@@ -6,6 +6,15 @@
 #include <stddef.h>
 #include <stdlib.h>
 
+#ifdef DEBUG_SYSCALLS
+#if defined(_WIN32)
+#include <windows.h>
+#elif defined(__linux__)
+#include <dlfcn.h>
+#else
+#endif // _WIN32
+#endif // DEBUG_SYSCALLS
+
 #if defined(_MSC_VER)
 #include <intrin.h>
 #elif defined(__clang__)
@@ -141,19 +150,54 @@ ALWAYS_INLINE static bool riscvm_handle_syscall(riscvm_ptr self, uint64_t code, 
 
     case 10102: // print_int
     {
-        printf("[syscall::print_int] %lli\n", reg_read(reg_a0));
+        printf("[syscall::print_int] %" PRIi64 "\n", reg_read(reg_a0));
         break;
     }
 
     case 10103: // print_hex
     {
-        printf("[syscall::print_hex] 0x%llx\n", reg_read(reg_a0));
+        printf("[syscall::print_hex] 0x%" PRIx64 "\n", reg_read(reg_a0));
         break;
     }
 
     case 10104: // print_tag_hex
     {
-        printf("[syscall::print_tag_hex] %s: 0x%llx\n", (char*)reg_read(reg_a0), reg_read(reg_a1));
+        printf("[syscall::print_tag_hex] %s: 0x%" PRIx64 "\n", (char*)reg_read(reg_a0), reg_read(reg_a1));
+        break;
+    }
+
+    case 10105: // resolve_import
+    {
+        auto import_module = (const char*)reg_read(reg_a0);
+        auto import_name   = (const char*)reg_read(reg_a1);
+        printf("[syscall::resolve_import] %s:%s\n", import_module ? import_module : "<nullptr>", import_name);
+#if defined(_WIN32)
+        auto module_handle = GetModuleHandleA(import_module);
+        if (module_handle == nullptr)
+        {
+            module_handle = LoadLibraryA(import_module);
+            if (module_handle == nullptr)
+            {
+                printf("could not resolve module: %s\n", import_module);
+                return false;
+            }
+        }
+        result = (uint64_t)GetProcAddress(module_handle, import_name);
+#elif defined(__linux__)
+        void* handle = nullptr;
+        if (import_module != nullptr)
+        {
+            handle = dlopen(import_module, RTLD_NOW);
+            if (handle == nullptr)
+            {
+                printf("could not resolve module: %s\n", import_module);
+            }
+        }
+        result = (uint64_t)dlsym(handle, import_name);
+#else
+#pragma message("resolve_import unsupported on this platform")
+#endif // _WIN32
+        printf("[syscall::resolve_import] result: %" PRIx64 "\n", result);
         break;
     }
 
@@ -206,7 +250,7 @@ ALWAYS_INLINE static bool riscvm_handle_syscall(riscvm_ptr self, uint64_t code, 
 
     default:
     {
-        panic("illegal system call %llu (0x%llX)\n", code, code);
+        panic("illegal system call %" PRIu64 " (0x%" PRIx64 ")\n", code, code);
         return false;
     }
     }
@@ -1061,7 +1105,8 @@ ALWAYS_INLINE static bool riscvm_execute(riscvm_ptr self, Instruction inst)
 #ifdef _MSC_VER
 __declspec(safebuffers)
 #endif // _MSC_VER
-NEVER_INLINE void riscvm_run(riscvm_ptr self)
+NEVER_INLINE void
+riscvm_run(riscvm_ptr self)
 {
     while (true)
     {
