@@ -25,16 +25,24 @@ struct VMContext
     uint64_t        pc;
     uint64_t        regs[256];
 
+    // Fetches the next byte from the bytecode and increments the program counter
     ALWAYS_INLINE uint8_t fetch()
     {
-        return bytecode[pc++];
+        uint8_t data = bytecode[pc];
+        pc += 1;
+        return data;
     }
 
+    // Fetches the register index from the bytecode and returns a reference to the
+    // corresponding register
     ALWAYS_INLINE uint64_t& op_reg()
     {
-        return regs[fetch()];
+        auto reg_idx = fetch();
+        return regs[reg_idx];
     }
 
+    // Fetches a 64-bit immediate value from the bytecode and returns it
+    // increments the program counter
     ALWAYS_INLINE uint64_t op_imm64()
     {
         auto imm = *(uint64_t*)&bytecode[pc];
@@ -90,6 +98,7 @@ static uint64_t handler_xor(VMContext& ctx);
 static uint64_t handler_or(VMContext& ctx);
 static uint64_t handler_mul(VMContext& ctx);
 
+// The opcode is the index into this handlers array
 static VMHandler handlers[] = {
     handler_label,
     handler_ret,
@@ -120,6 +129,9 @@ static VMHandler handlers[] = {
 
 static uint64_t handler_label(VMContext& ctx)
 {
+    // The label bytecode contains a placeholder for the compile-time processing
+    // happening in the VMLabels constructor. This is why we need to skip 9 bytes:
+    // 0x12, 0x34, 0x56, 0x78, index, 0x87, 0x65, 0x43, 0x21
     ctx.pc += 9;
     dispatch(ctx);
 }
@@ -211,23 +223,24 @@ static uint64_t handler_mul(VMContext& ctx)
     EXTRACT(imm64, 0), EXTRACT(imm64, 1), EXTRACT(imm64, 2), EXTRACT(imm64, 3), EXTRACT(imm64, 4), \
         EXTRACT(imm64, 5), EXTRACT(imm64, 6), EXTRACT(imm64, 7)
 
-#define LABEL(index)       OPCODE(0), 0x12, 0x34, 0x56, 0x78, index, 0x87, 0x65, 0x43, 0x21
-#define RET(op)            OPCODE(1), op
-#define ADD(dst, op1, op2) OPCODE(2), dst, op1, op2
-#define MOVIMM(dst, imm64) OPCODE(3), dst, IMM64(imm64)
-#define CMP(dst, op1, op2) OPCODE(4), dst, op1, op2
-#define JCC(cond, label)   OPCODE(5), cond, label
-#define XOR(dst, op1, op2) OPCODE(6), dst, op1, op2
-#define OR(dst, op1, op2)  OPCODE(7), dst, op1, op2
+#define LABEL_PLACEHOLDER(index) OPCODE(0), 0x12, 0x34, 0x56, 0x78, index, 0x87, 0x65, 0x43, 0x21
+#define RET(op)                  OPCODE(1), op
+#define ADD(dst, op1, op2)       OPCODE(2), dst, op1, op2
+#define MOVIMM(dst, imm64)       OPCODE(3), dst, IMM64(imm64)
+#define CMP(dst, op1, op2)       OPCODE(4), dst, op1, op2
+#define JCC(cond, label)         OPCODE(5), cond, label
+#define XOR(dst, op1, op2)       OPCODE(6), dst, op1, op2
+#define OR(dst, op1, op2)        OPCODE(7), dst, op1, op2
+#define MUL(dst, op1, op2)       OPCODE(8), dst, op1, op2
 
 /*
 constexpr uint8_t bytecode1[] =
 {
     MOVIMM(REG(254), 0x2),
     CMP(REG(255), REG(0), REG(254)),
-    JCC(REG(255), 0),
+    JCC(REG(255), 0), // jumps to LABEL_PLACEHOLDER(0) if REG(255) != 0
     RET(REG(254)),
-    LABEL(0),
+    LABEL_PLACEHOLDER(0),
     ADD(REG(0), REG(0), REG(1)),
     MOVIMM(REG(0), 0x1122334455667788),
     RET(REG(0)),
@@ -261,7 +274,9 @@ static __attribute__((optnone)) uint64_t execute_bytecode(
 #ifdef VMDEBUG
     ctx.pc++;
 #endif
-    return handlers[ctx.fetch()](ctx);
+
+    uint8_t opcode = ctx.fetch();
+    return handlers[opcode](ctx);
 }
 
 extern __attribute__((noinline)) uint64_t vm_bytecode1(uint64_t r0, uint64_t r1, uint64_t r2, uint64_t r3)
@@ -269,18 +284,23 @@ extern __attribute__((noinline)) uint64_t vm_bytecode1(uint64_t r0, uint64_t r1,
     return execute_bytecode(bytecode1, labels1.labels, r0, r1, r2, r3);
 }
 
-uint64_t test(const char* a, const char* b, const char* c, const char* d)
-{
-    return vm_bytecode1(atoi(a), atoi(b), atoi(c), atoi(d));
-}
-
 int main(int argc, char** argv)
 {
-    if (argc < 5)
+    // Usage: ./minivm 1 2 3 4
+    // Missing arguments default to zero
+    uint64_t args[4] = {};
+    for (int i = 1; i < argc; i++)
     {
-        puts("Usage: minivm a b c d");
-        return 1;
+        args[i - 1] = atoi(argv[i]);
     }
-    auto ret = test(argv[1], argv[2], argv[3], argv[4]);
-    printf("result: %" PRIu64 "\n", ret);
+
+    printf("bytecode:");
+    for (size_t i = 0; i < sizeof(bytecode1); i++)
+    {
+        printf(" %02X", bytecode1[i]);
+    }
+    puts("");
+    printf("arguments: (%" PRIi64 ", %" PRIi64 ", %" PRIi64 ", %" PRIi64 ")\n", args[0], args[1], args[2], args[3]);
+    auto ret = vm_bytecode1(args[0], args[1], args[2], args[3]);
+    printf("result: %" PRIi64 "\n", ret);
 }

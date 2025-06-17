@@ -28,8 +28,9 @@
         "-header-insertion=never",
         "--function-arg-placeholders=0"
     ],
-    "clang-format.executable": "clang-format-20",
+    //"clang-format.executable": "clang-format-20",
     "clangd.path": "clangd-20",
+    "editor.inlayHints.enabled": "offUnlessPressed", // people found these confusing
     "cmake.configureOnOpen": false,
     "cmake.useCMakePresets": "always",
     "cmake.options.statusBarVisibility": "hidden",

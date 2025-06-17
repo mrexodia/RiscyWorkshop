@@ -57,6 +57,8 @@ Run the shellcode in the `riscvm` interpreter:
 ../riscvm/build-linux/riscvm hello.pre.bin
 ```
 
+**NOTE**: It is normal that you will see `no features in the file (unencrypted payload?)` at this stage. This message will disappear once we enable obfuscation features in a later exercise.
+
 Exercises:
 1. Run the interpreter with the `--trace` argument and inspect the trace with `code hello.pre.bin.trace`
 2. Load `hello.elf` in Ghidra (make sure you match the base address from the trace)
