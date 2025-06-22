@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 #ifdef DEBUG_SYSCALLS
 #if defined(_WIN32)

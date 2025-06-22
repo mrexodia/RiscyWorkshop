@@ -50,12 +50,67 @@ static void handle_riscvm(const httplib::Request& req, httplib::Response& res)
         vm.trace      = fopen(filename.c_str(), "w");
         vm.rebase     = -(int64_t)vm_code.data();
     }
+#else
+    (void)request_id;
 #endif // TRACING
 
     auto self = &vm;
     reg_write(reg_a0, 0x1122334455667788);
     reg_write(reg_sp, (uint64_t)(stack.data() + stack.size() - 0x18));
     self->pc = (int64_t)vm_code.data();
+
+#pragma pack(1)
+    struct Features
+    {
+        uint32_t magic;
+        struct
+        {
+            bool encrypted : 1;
+            bool shuffled  : 1;
+        };
+        uint32_t key;
+    };
+    static_assert(sizeof(Features) == 9, "");
+
+    auto features = (Features*)(vm_code.data() + body.size() - 4 - sizeof(Features));
+    if (features->magic != 'TAEF')
+    {
+        printf("[c2] no features in the file (unencrypted payload?)\n");
+#if defined(CODE_ENCRYPTION) || defined(OPCODE_SHUFFLING)
+        return;
+#endif // CODE_ENCRYPTION || OPCODE_SHUFFLING
+    }
+
+#ifdef OPCODE_SHUFFLING
+    if (!features->shuffled)
+    {
+        printf("[c2] shuffling enabled on the host, disabled in the bytecode");
+        return;
+    }
+#else
+    if (features->shuffled)
+    {
+        printf("[c2] shuffling disabled on the host, enabled in the bytecode");
+        return;
+    }
+#endif // OPCODE_SHUFFLING
+
+#ifdef CODE_ENCRYPTION
+    if (!features->encrypted)
+    {
+        printf("[c2] encryption enabled on the host, disabled in the bytecode");
+        return;
+    }
+    self->base = self->pc;
+    self->key  = features->key;
+#else
+    if (features->encrypted)
+    {
+        printf("[c2] encryption disabled on the host, enabled in the bytecode");
+        return;
+    }
+#endif // CODE_ENCRYPTION
+
     riscvm_run(self);
     auto status = (int)reg_read(reg_a0);
 

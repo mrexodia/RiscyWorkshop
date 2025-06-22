@@ -24,3 +24,11 @@ Run the payload:
 ```sh
 wine riscvm/build/riscvm.exe payload/build/hello.bin
 ```
+
+This should output:
+
+```
+no features in the file (unencrypted payload?)
+Hello from RISC-V!
+exit code: 0
+```
