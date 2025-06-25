@@ -448,12 +448,12 @@ ALWAYS_INLINE static bool handler_rv64_imm64(riscvm_ptr self, Instruction inst)
     {
     case rv64_imm64_addi:
     {
-        val = val + imm;
+        val = (uint64_t)val + imm;
         break;
     }
     case rv64_imm64_slli:
     {
-        val = val << (inst.itype.imm & 0b111111);
+        val = (uint64_t)val << (inst.itype.imm & 0b111111);
         break;
     }
     case rv64_imm64_slti:
@@ -535,7 +535,7 @@ ALWAYS_INLINE static bool handler_rv64_imm32(riscvm_ptr self, Instruction inst)
     }
     case rv64_imm32_slliw:
     {
-        val = int32_t(val) << (imm & 0b11111);
+        val = (int32_t)(uint32_t(val) << (imm & 0b11111));
         break;
     }
     case rv64_imm32_srxiw:
@@ -584,7 +584,7 @@ ALWAYS_INLINE static bool handler_rv64_op64(riscvm_ptr self, Instruction inst)
     }
     case rv64_op64_sll:
     {
-        val = val1 << (val2 & 0b111111);
+        val = (uint64_t)val1 << (val2 & 0b111111);
         break;
     }
     case rv64_op64_slt:
@@ -638,7 +638,7 @@ ALWAYS_INLINE static bool handler_rv64_op64(riscvm_ptr self, Instruction inst)
     }
     case rv64_op64_mul:
     {
-        val = val1 * val2;
+        val = (uint64_t)val1 * (uint64_t)val2;
         break;
     }
     case rv64_op64_mulh:
@@ -653,7 +653,7 @@ ALWAYS_INLINE static bool handler_rv64_op64(riscvm_ptr self, Instruction inst)
     }
     case rv64_op64_mulhu:
     {
-        val = (int64_t)(uint64_t)riscvm_shr_int128((__int128)(uint64_t)val1 * (__int128)(uint64_t)val2, 64);
+        val = (int64_t)(uint64_t)riscvm_shr_int128((__uint128_t)(uint64_t)val1 * (__uint128_t)(uint64_t)val2, 64);
         break;
     }
     case rv64_op64_div:
@@ -747,7 +747,7 @@ ALWAYS_INLINE static bool handler_rv64_op32(riscvm_ptr self, Instruction inst)
     }
     case rv64_op32_sllw:
     {
-        val = int32_t(val1 << (val2 & 0b11111));
+        val = int32_t((uint32_t)val1 << (val2 & 0b11111));
         break;
     }
     case rv64_op32_srlw:
@@ -757,7 +757,7 @@ ALWAYS_INLINE static bool handler_rv64_op32(riscvm_ptr self, Instruction inst)
     }
     case rv64_op32_mulw:
     {
-        val = (int64_t)((int32_t)val1 * (int32_t)val2);
+        val = (int32_t)((uint32_t)val1 * (uint32_t)val2);
         break;
     }
     case rv64_op32_divw:
@@ -849,7 +849,7 @@ ALWAYS_INLINE static bool handler_rv64_op32(riscvm_ptr self, Instruction inst)
 
 ALWAYS_INLINE static bool handler_rv64_lui(riscvm_ptr self, Instruction inst)
 {
-    int64_t imm = bit_signer(inst.utype.imm, 20) << 12;
+    int64_t imm = (int32_t)((uint32_t)bit_signer(inst.utype.imm, 20) << 12);
     reg_write(inst.utype.rd, imm);
 
     self->pc += 4;
@@ -858,7 +858,7 @@ ALWAYS_INLINE static bool handler_rv64_lui(riscvm_ptr self, Instruction inst)
 
 ALWAYS_INLINE static bool handler_rv64_auipc(riscvm_ptr self, Instruction inst)
 {
-    int64_t imm = bit_signer(inst.utype.imm, 20) << 12;
+    int64_t imm = (int32_t)((uint32_t)bit_signer(inst.utype.imm, 20) << 12);
     reg_write(inst.utype.rd, self->pc + imm);
 
     self->pc += 4;
