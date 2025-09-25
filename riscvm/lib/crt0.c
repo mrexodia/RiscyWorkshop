@@ -1,18 +1,3 @@
-static void exit(int exit_code);
-static void riscvm_relocs();
-void        riscvm_imports() __attribute__((weak));
-static void riscvm_init_arrays();
-extern int __attribute((noinline)) main();
-
-// NOTE: This function has to be first in the file
-void _start()
-{
-    riscvm_relocs();
-    riscvm_imports();
-    riscvm_init_arrays();
-    exit(main());
-    asm volatile("ebreak");
-}
 
 #include <stdint.h>
 #include <stddef.h>
@@ -75,6 +60,8 @@ static __attribute((optnone)) void riscvm_init_arrays()
     }
 }
 
+void riscvm_imports() __attribute__((weak));
+
 void riscvm_imports()
 {
 }
@@ -124,3 +111,16 @@ void* memmove(void* dest, const void* src, uintptr_t count)
 #ifdef CRT0_MSVC
 #include "crt0-msvc.h"
 #endif // CRT0_MSVC
+
+extern int __attribute((noinline)) main();
+
+void _start() __attribute__((section(".text.start")));
+
+void _start()
+{
+    riscvm_relocs();
+    riscvm_imports();
+    riscvm_init_arrays();
+    exit(main());
+    asm volatile("ebreak");
+}

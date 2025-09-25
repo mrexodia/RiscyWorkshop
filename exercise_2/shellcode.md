@@ -66,6 +66,6 @@ Exercises:
    - RISC-V Instruction Set Specifications: https://msyksphinz-self.github.io/riscv-isadoc/html/index.html
    - Official reference: https://five-embeddev.com/riscv-user-isa-manual/Priv-v1.12/rv64.html
    - Pseudo Instructions: https://stackoverflow.com/a/65008687/1806760
-4. Why does the `_start` function have to be first in the file?
-5. What happens if you comment out the call to `exit` and let `_start` return? Why does this happen?
+4. What happens if you comment out the call to `exit` and let `_start` return? Why does this happen?
+5. Why does the `_start` function have an additional `section` annotation?
 6. Bonus: Complete the `build.py` script that automates the compilation steps

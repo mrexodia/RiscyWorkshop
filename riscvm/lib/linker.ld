@@ -9,6 +9,7 @@ SECTIONS
 
     .text : ALIGN(16) {
         . = LINK_BASE;
+        *(.text.start)
         *(.text)
         *(.text.*)
     }

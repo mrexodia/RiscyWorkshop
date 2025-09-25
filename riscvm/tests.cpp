@@ -1,8 +1,8 @@
 #include <cstddef>
-#include <memory>
 #include <vector>
 #include <cstdlib>
 #include <cstring>
+#include <cinttypes>
 
 #include "riscvm.h"
 #include "riscvm-code.h"
@@ -69,7 +69,7 @@ int main(int argc, char** argv)
         {
             if (code != 0x5d)
             {
-                printf("Unexpected syscall %llu (0x%llX)\n", code, code);
+                printf("Unexpected syscall %" PRIu64 " (0x%" PRIX64 ")\n", code, code);
             }
             return false;
         };

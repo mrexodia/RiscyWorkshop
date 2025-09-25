@@ -10,7 +10,6 @@ int main()
     puts("Hello from RISC-V!");
     MessageBoxA(0, "Hello from RISC-V!", "Windows API", MB_SYSTEMMODAL);
     append_response_t append_response = (append_response_t)GetProcAddress(0, "append_response");
-    printf("append_response: %p\n", append_response);
     if (append_response != NULL)
     {
         uintptr_t args[13] = {};
