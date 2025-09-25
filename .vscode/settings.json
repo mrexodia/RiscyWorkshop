@@ -14,7 +14,7 @@
     "C_Cpp.intelliSenseEngine": "disabled",
     "[cpp]": {
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "xaver.clang-format"
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
     },
     "[c]": {
         "editor.formatOnSave": true,
@@ -28,8 +28,7 @@
         "-header-insertion=never",
         "--function-arg-placeholders=0"
     ],
-    //"clang-format.executable": "clang-format-20",
-    "clangd.path": "clangd-20",
+    "clangd.path": "/usr/bin/clangd-20",
     "editor.inlayHints.enabled": "offUnlessPressed", // people found these confusing
     "cmake.configureOnOpen": false,
     "cmake.useCMakePresets": "always",

@@ -14,7 +14,7 @@
                 "tintinweb.graphviz-interactive-preview",
                 "esbenp.prettier-vscode",
                 "ms-python.python",
-                "xaver.clang-format"
+                "mathematic.vscode-pdf"
             ]
         },
         "codespaces": {
