@@ -22,19 +22,24 @@ static void handle_riscvm(const httplib::Request& req, httplib::Response& res)
     auto request_id = g_request_id.fetch_add(1);
     g_response_data.clear();
 
+    auto error = [&res](const char* message)
+    {
+        res.status = 400;
+        res.set_content(std::string("error:") + message, "text/plain");
+        printf("[c2] %s\n", message);
+    };
+
     const std::string& body = req.body;
     if (body.size() < 0x10 || memcmp(body.c_str(), "RV64", 4) != 0)
     {
-        res.status = 400;
-        res.set_content("Invalid RV64 code", "text/plain");
-        printf("[c2] invalid payload header!\n");
+        error("Invalid RV64 payload header");
         return;
     }
     std::vector<uint8_t> vm_code((body.size() + 0xFFF) & ~0xFFF);
-    memcpy(vm_code.data(), body.c_str() + 4, body.size());
+    memcpy(vm_code.data(), body.c_str() + 4, body.size() - 4);
     std::vector<uint8_t> stack(0x10000);
 
-    printf("[c2] executing %zu byte payload\n", body.size());
+    printf("[c2] executing %zu byte payload\n", body.size() - 4);
 
     riscvm vm = {};
 #ifdef TRACING
@@ -75,41 +80,45 @@ static void handle_riscvm(const httplib::Request& req, httplib::Response& res)
     auto features = (Features*)(vm_code.data() + body.size() - 4 - sizeof(Features));
     if (features->magic != 'TAEF')
     {
-        printf("[c2] no features in the file (unencrypted payload?)\n");
 #if defined(CODE_ENCRYPTION) || defined(OPCODE_SHUFFLING)
+        error("no features found in file");
         return;
+#else
+        printf("[c2] no features in the file (unencrypted payload?)\n");
 #endif // CODE_ENCRYPTION || OPCODE_SHUFFLING
     }
-
+    else
+    {
 #ifdef OPCODE_SHUFFLING
-    if (!features->shuffled)
-    {
-        printf("[c2] shuffling enabled on the host, disabled in the bytecode");
-        return;
-    }
+        if (!features->shuffled)
+        {
+            error("shuffling enabled on the host, disabled in the bytecode");
+            return;
+        }
 #else
-    if (features->shuffled)
-    {
-        printf("[c2] shuffling disabled on the host, enabled in the bytecode");
-        return;
-    }
+        if (features->shuffled)
+        {
+            error("shuffling disabled on the host, enabled in the bytecode");
+            return;
+        }
 #endif // OPCODE_SHUFFLING
 
 #ifdef CODE_ENCRYPTION
-    if (!features->encrypted)
-    {
-        printf("[c2] encryption enabled on the host, disabled in the bytecode");
-        return;
-    }
-    self->base = self->pc;
-    self->key  = features->key;
+        if (!features->encrypted)
+        {
+            error("encryption enabled on the host, disabled in the bytecode");
+            return;
+        }
+        self->base = self->pc;
+        self->key  = features->key;
 #else
-    if (features->encrypted)
-    {
-        printf("[c2] encryption disabled on the host, enabled in the bytecode");
-        return;
-    }
+        if (features->encrypted)
+        {
+            error("encryption disabled on the host, enabled in the bytecode");
+            return;
+        }
 #endif // CODE_ENCRYPTION
+    }
 
     riscvm_run(self);
     auto status = (int)reg_read(reg_a0);
@@ -123,7 +132,10 @@ static void handle_riscvm(const httplib::Request& req, httplib::Response& res)
 
     auto response = "epoch:" + std::to_string(time(nullptr)) + "\n";
     response += "status:" + std::to_string(status) + "\n";
-    response += "data:" + g_response_data + "\n";
+    if (!g_response_data.empty())
+    {
+        response += "data:" + g_response_data + "\n";
+    }
     res.set_content(response, "text/plain");
 
     printf("[c2] riscvm_run returned exit code %d\n", status);
