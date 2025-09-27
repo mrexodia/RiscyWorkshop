@@ -965,7 +965,7 @@ ALWAYS_INLINE static bool handler_rv64_system(riscvm_ptr self, Instruction inst)
 {
     switch (inst.itype.imm)
     {
-    case 0b000000000000: // ecall
+    case 0b000000000000: // ecall/scall
     {
 #ifdef TRACING
         // Flush the trace in case the system call crashes

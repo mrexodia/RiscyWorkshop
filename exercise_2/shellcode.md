@@ -31,14 +31,6 @@ Compile `hello.c` for `rv64im`:
 clang-20 -target riscv64 -march=rv64im -mcmodel=medany -Os -c hello.c -o hello.o
 ```
 
-Godbolt link to quickly play around: https://godbolt.org/z/14aWYrx4M
-
-Disassemble the object:
-
-```sh
-llvm-objdump-20 --disassemble hello.o
-```
-
 Link the shellcode with the linker script into an ELF container:
 
 ```sh
@@ -49,6 +41,12 @@ Extract the shellcode from the ELF container:
 
 ```sh
 llvm-objcopy-20 -O binary hello.elf hello.pre.bin
+```
+
+Disassemble the shellcode (you can also use Godbolt to play around a bit more easily: https://godbolt.org/z/14aWYrx4M):
+
+```sh
+llvm-objdump-20 --disassemble hello.elf
 ```
 
 Run the shellcode in the `riscvm` interpreter:

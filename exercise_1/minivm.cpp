@@ -20,10 +20,10 @@ zig c++ -target x86_64-windows -std=c++20 -O3 -fno-slp-vectorize minivm.cpp -o m
 
 struct VMContext
 {
-    const uint8_t*  bytecode;
-    const uint32_t* labels;
-    uint64_t        pc;
-    uint64_t        regs[256];
+    const uint8_t*  bytecode  = nullptr;
+    const uint32_t* labels    = nullptr;
+    uint64_t        pc        = 0;
+    uint64_t        regs[256] = {};
 
     // Fetches the next byte from the bytecode and increments the program counter
     ALWAYS_INLINE uint8_t fetch()
@@ -275,6 +275,7 @@ static __attribute__((optnone)) uint64_t execute_bytecode(
     ctx.pc++;
 #endif
 
+    // Dispatch the first instruction
     uint8_t opcode = ctx.fetch();
     return handlers[opcode](ctx);
 }
