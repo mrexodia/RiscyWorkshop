@@ -1,6 +1,6 @@
 # Host interaction
 
-Rmember: look at `exercise_2/shellcode.md` for compilation instructions.
+Rmember: look at `exercise_2/shellcode.md` for compilation instructions (ask for the finished `build.py` from exercise 1 to make things easier).
 
 Exercises:
 1. Look in `riscvm.cpp` and make a list of all the available syscalls and their numbers

@@ -65,5 +65,7 @@ Exercises:
    - Official reference: https://five-embeddev.com/riscv-user-isa-manual/Priv-v1.12/rv64.html
    - Pseudo Instructions: https://stackoverflow.com/a/65008687/1806760
 4. What happens if you comment out the call to `exit` and let `_start` return? Why does this happen?
+It crashes because the riscvm will return to address `0` and crash when trying to fetch the opcode.
 5. Why does the `_start` function have an additional `section` annotation?
+Because `_start` has to be at the very beginning of the shellcode, this is done in `linker.ld` by putting the `.text.start` section at the very beginning.
 6. Bonus: Complete the `build.py` script that automates the compilation steps
