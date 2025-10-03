@@ -86,12 +86,54 @@ template <size_t MaxLabels = 5> struct VMLabels
     uint32_t labels[MaxLabels];
 };
 
-static void handler_label(VMContext& ctx)
+using VMHandler = uint64_t (*)(VMContext& ctx);
+
+static uint64_t handler_label(VMContext& ctx);
+static uint64_t handler_ret(VMContext& ctx);
+static uint64_t handler_add(VMContext& ctx);
+static uint64_t handler_movimm(VMContext& ctx);
+static uint64_t handler_cmp(VMContext& ctx);
+static uint64_t handler_jcc(VMContext& ctx);
+static uint64_t handler_xor(VMContext& ctx);
+static uint64_t handler_or(VMContext& ctx);
+static uint64_t handler_mul(VMContext& ctx);
+
+// The opcode is the index into this handlers array
+static VMHandler handlers[] = {
+    handler_label,
+    handler_ret,
+    handler_add,
+    handler_movimm,
+    handler_cmp,
+    handler_jcc,
+    handler_xor,
+    handler_or,
+    handler_mul,
+};
+
+#ifdef VMDEBUG
+#define dispatch(ctx)                                           \
+    {                                                           \
+        auto check = ctx.fetch();                               \
+        if (check != 0xFF)                                      \
+        {                                                       \
+            printf("OPCODE MISALIGNED AT %zu\n", ctx.pc - 1);   \
+            return -1;                                          \
+        }                                                       \
+        auto opcode = ctx.fetch();                              \
+        __attribute__((musttail)) return handlers[opcode](ctx); \
+    }
+#else
+#define dispatch(ctx) __attribute__((musttail)) return handlers[ctx.bytecode[ctx.pc++]](ctx)
+#endif // VMDEBUG
+
+static uint64_t handler_label(VMContext& ctx)
 {
     // The label bytecode contains a placeholder for the compile-time processing
     // happening in the VMLabels constructor. This is why we need to skip 9 bytes:
     // 0x12, 0x34, 0x56, 0x78, index, 0x87, 0x65, 0x43, 0x21
     ctx.pc += 9;
+    dispatch(ctx);
 }
 
 static uint64_t handler_ret(VMContext& ctx)
@@ -99,29 +141,32 @@ static uint64_t handler_ret(VMContext& ctx)
     return ctx.op_reg();
 }
 
-static void handler_add(VMContext& ctx)
+static uint64_t handler_add(VMContext& ctx)
 {
     auto& dst = ctx.op_reg();
     auto& op1 = ctx.op_reg();
     auto& op2 = ctx.op_reg();
     dst       = op1 + op2;
+    dispatch(ctx);
 }
 
-static void handler_movimm(VMContext& ctx)
+static uint64_t handler_movimm(VMContext& ctx)
 {
     auto& dst = ctx.op_reg();
     dst       = ctx.op_imm64();
+    dispatch(ctx);
 }
 
-static void handler_cmp(VMContext& ctx)
+static uint64_t handler_cmp(VMContext& ctx)
 {
     auto& dst = ctx.op_reg();
     auto& op1 = ctx.op_reg();
     auto& op2 = ctx.op_reg();
     dst       = op1 == op2;
+    dispatch(ctx);
 }
 
-static void handler_jcc(VMContext& ctx)
+static uint64_t handler_jcc(VMContext& ctx)
 {
     auto& cond  = ctx.op_reg();
     auto  label = ctx.fetch();
@@ -129,30 +174,34 @@ static void handler_jcc(VMContext& ctx)
     {
         ctx.pc = ctx.labels[label];
     }
+    dispatch(ctx);
 }
 
-static void handler_xor(VMContext& ctx)
+static uint64_t handler_xor(VMContext& ctx)
 {
     auto& dst = ctx.op_reg();
     auto& op1 = ctx.op_reg();
     auto& op2 = ctx.op_reg();
     dst       = op1 ^ op2;
+    dispatch(ctx);
 }
 
-static void handler_or(VMContext& ctx)
+static uint64_t handler_or(VMContext& ctx)
 {
     auto& dst = ctx.op_reg();
     auto& op1 = ctx.op_reg();
     auto& op2 = ctx.op_reg();
     dst       = op1 | op2;
+    dispatch(ctx);
 }
 
-static void handler_mul(VMContext& ctx)
+static uint64_t handler_mul(VMContext& ctx)
 {
     auto& dst = ctx.op_reg();
     auto& op1 = ctx.op_reg();
     auto& op2 = ctx.op_reg();
     dst       = op1 * op2;
+    dispatch(ctx);
 }
 
 #define REG(n) n
@@ -185,7 +234,8 @@ static void handler_mul(VMContext& ctx)
 #define MUL(dst, op1, op2)       OPCODE(8), dst, op1, op2
 
 /*
-constexpr uint8_t bytecode1[] = {
+constexpr uint8_t bytecode1[] =
+{
     MOVIMM(REG(254), 0x2),
     CMP(REG(255), REG(0), REG(254)),
     JCC(REG(255), 0), // jumps to LABEL_PLACEHOLDER(0) if REG(255) != 0
@@ -225,42 +275,9 @@ static __attribute__((optnone)) uint64_t execute_bytecode(
     ctx.pc++;
 #endif
 
-    while (true)
-    {
-        // Get instruction opcode
-        uint8_t opcode = ctx.fetch();
-        switch (opcode)
-        {
-        case 0:
-            handler_label(ctx);
-            break;
-        case 1:
-            return handler_ret(ctx);
-        case 2:
-            handler_add(ctx);
-            break;
-        case 3:
-            handler_movimm(ctx);
-            break;
-        case 4:
-            handler_cmp(ctx);
-            break;
-        case 5:
-            handler_jcc(ctx);
-            break;
-        case 6:
-            handler_xor(ctx);
-            break;
-        case 7:
-            handler_or(ctx);
-            break;
-        case 8:
-            handler_mul(ctx);
-            break;
-        default:
-            __builtin_unreachable();
-        }
-    }
+    // Dispatch the first instruction
+    uint8_t opcode = ctx.fetch();
+    return handlers[opcode](ctx);
 }
 
 extern __attribute__((noinline)) uint64_t vm_bytecode1(uint64_t r0, uint64_t r1, uint64_t r2, uint64_t r3)
@@ -278,6 +295,12 @@ int main(int argc, char** argv)
         args[i - 1] = atoi(argv[i]);
     }
 
+    printf("bytecode:");
+    for (size_t i = 0; i < sizeof(bytecode1); i++)
+    {
+        printf(" %02X", bytecode1[i]);
+    }
+    puts("");
     printf("arguments: (%" PRIi64 ", %" PRIi64 ", %" PRIi64 ", %" PRIi64 ")\n", args[0], args[1], args[2], args[3]);
     auto ret = vm_bytecode1(args[0], args[1], args[2], args[3]);
     printf("result: %" PRIi64 "\n", ret);

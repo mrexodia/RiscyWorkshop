@@ -27,5 +27,8 @@ If you finish early, here are a few bonus exercises (not required):
 
 1. Extend `minivm.cpp` so it becomes possible to implement `fib(n)` (iterative).
 2. Implement the `fib(n)` function to verify your new opcodes.
+
+Do these exercises for `minivm-tailcall.cpp` (make sure to recompile):
+
 3. Analyze the `minivm` binary in you favorite disassembler/decompiler. Would it be difficult to write a disassembler for the VM bytecode if the opcodes were switched around?
 4. Which C++ attribute is responsible for the `jmp reg` opcode at the end of the handler?
