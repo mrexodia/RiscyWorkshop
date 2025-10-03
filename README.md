@@ -33,6 +33,17 @@ When prompted by the CMake tools, just close the notifications:
 
 ![](.devcontainer/cmake-notifications.png)
 
+# **Ask me for a pendrive with the Docker images if you want to run it locally**
+
+```
+1. Copy `riscyworkshop.tar` to your computer
+
+WARNING: DO NOT RUN THIS COMMAND FROM THE PENDRIVE, IT WILL BE SLOW
+
+2. Import the image with `docker load -i riscyworkshop.tar`
+3. Pass the pendrive to the next person or bring it back
+```
+
 <details>
 
 <summary><sub>At a later date you can set things up locally with Docker Desktop</sub></summary>
