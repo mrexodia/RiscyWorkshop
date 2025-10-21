@@ -188,7 +188,7 @@ static void handler_mul(VMContext& ctx)
 constexpr uint8_t bytecode1[] = {
     MOVIMM(REG(254), 0x2),
     CMP(REG(255), REG(0), REG(254)),
-    JCC(REG(255), 0), // jumps to LABEL_PLACEHOLDER(0) if REG(255) != 0
+    JCC(REG(255), 0), // jumps to LABEL_PLACEHOLDER(0) if REG(255) != 0 (so REG(0) == 2)
     RET(REG(254)),
     LABEL_PLACEHOLDER(0),
     ADD(REG(0), REG(0), REG(1)),
