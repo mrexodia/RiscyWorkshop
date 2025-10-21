@@ -44,11 +44,12 @@ WARNING: DO NOT RUN THIS COMMAND FROM THE PENDRIVE, IT WILL BE SLOW
 3. Pass the pendrive to the next person or bring it back
 ```
 
+### 2) Locally with Docker Desktop
+
 <details>
 
 <summary><sub>At a later date you can set things up locally with Docker Desktop</sub></summary>
 
-### Docker Desktop (tricky)
 
 - Install/Update [Docker Desktop](https://www.docker.com/products/docker-desktop/) ([alternatives](https://code.visualstudio.com/remote/advancedcontainers/docker-options))
 - **Start Docker Desktop**
