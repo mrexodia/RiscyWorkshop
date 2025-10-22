@@ -51,10 +51,11 @@ struct VMContext
     }
 };
 
-template <size_t MaxLabels = 5> struct VMLabels
+template <size_t MaxLabels = 5, size_t MaxBytecode = 1024> struct VMBytecode
 {
-    template <size_t Size> constexpr VMLabels(const uint8_t (&bytecode)[Size]) : labels()
+    template <size_t Size> constexpr VMBytecode(const uint8_t (&bytecode)[Size]) : labels()
     {
+        // Initialize the labels to -1
         for (size_t i = 0; i < std::size(labels); i++)
         {
             labels[i] = -1;
@@ -62,6 +63,7 @@ template <size_t MaxLabels = 5> struct VMLabels
 
         for (size_t i = 0; i + 10 < Size; i++)
         {
+            data[i] = bytecode[i];
             if (bytecode[i] == 0 && bytecode[i + 1] == 0x12 && bytecode[i + 2] == 0x34
                 && bytecode[i + 3] == 0x56 && bytecode[i + 4] == 0x78 && bytecode[i + 6] == 0x87
                 && bytecode[i + 7] == 0x65 && bytecode[i + 8] == 0x43 && bytecode[i + 9] == 0x21)
@@ -84,9 +86,10 @@ template <size_t MaxLabels = 5> struct VMLabels
     }
 
     uint32_t labels[MaxLabels];
+    uint8_t  data[MaxBytecode] = {};
 };
 
-static void handler_label(VMContext& ctx)
+static ALWAYS_INLINE void handler_label(VMContext& ctx)
 {
     // The label bytecode contains a placeholder for the compile-time processing
     // happening in the VMLabels constructor. This is why we need to skip 9 bytes:
@@ -94,12 +97,12 @@ static void handler_label(VMContext& ctx)
     ctx.pc += 9;
 }
 
-static uint64_t handler_ret(VMContext& ctx)
+static ALWAYS_INLINE uint64_t handler_ret(VMContext& ctx)
 {
     return ctx.op_reg();
 }
 
-static void handler_add(VMContext& ctx)
+static ALWAYS_INLINE void handler_add(VMContext& ctx)
 {
     auto& dst = ctx.op_reg();
     auto& op1 = ctx.op_reg();
@@ -107,13 +110,13 @@ static void handler_add(VMContext& ctx)
     dst       = op1 + op2;
 }
 
-static void handler_movimm(VMContext& ctx)
+static ALWAYS_INLINE void handler_movimm(VMContext& ctx)
 {
     auto& dst = ctx.op_reg();
     dst       = ctx.op_imm64();
 }
 
-static void handler_cmp(VMContext& ctx)
+static ALWAYS_INLINE void handler_cmp(VMContext& ctx)
 {
     auto& dst = ctx.op_reg();
     auto& op1 = ctx.op_reg();
@@ -121,7 +124,7 @@ static void handler_cmp(VMContext& ctx)
     dst       = op1 == op2;
 }
 
-static void handler_jcc(VMContext& ctx)
+static ALWAYS_INLINE void handler_jcc(VMContext& ctx)
 {
     auto& cond  = ctx.op_reg();
     auto  label = ctx.fetch();
@@ -131,7 +134,7 @@ static void handler_jcc(VMContext& ctx)
     }
 }
 
-static void handler_xor(VMContext& ctx)
+static ALWAYS_INLINE void handler_xor(VMContext& ctx)
 {
     auto& dst = ctx.op_reg();
     auto& op1 = ctx.op_reg();
@@ -139,7 +142,7 @@ static void handler_xor(VMContext& ctx)
     dst       = op1 ^ op2;
 }
 
-static void handler_or(VMContext& ctx)
+static ALWAYS_INLINE void handler_or(VMContext& ctx)
 {
     auto& dst = ctx.op_reg();
     auto& op1 = ctx.op_reg();
@@ -147,7 +150,7 @@ static void handler_or(VMContext& ctx)
     dst       = op1 | op2;
 }
 
-static void handler_mul(VMContext& ctx)
+static ALWAYS_INLINE void handler_mul(VMContext& ctx)
 {
     auto& dst = ctx.op_reg();
     auto& op1 = ctx.op_reg();
@@ -155,67 +158,12 @@ static void handler_mul(VMContext& ctx)
     dst       = op1 * op2;
 }
 
-#define REG(n) n
-
-#if defined(__LITTLE_ENDIAN__)
-#define EXTRACT(imm64, byte) (((uint64_t)imm64 >> (8 * (byte))) & 0xFF)
-#elif defined(__BIG_ENDIAN__)
-#define EXTRACT(imm64, byte) (((uint64_t)imm64 >> (8 * (7 - byte))) & 0xFF)
-#else
-#error "Failed to detect endianness"
-#endif
-
-#ifdef VMDEBUG
-#define OPCODE(index) 0xFF, index
-#else
-#define OPCODE(index) index
-#endif // VMDEBUG
-#define IMM64(imm64)                                                                               \
-    EXTRACT(imm64, 0), EXTRACT(imm64, 1), EXTRACT(imm64, 2), EXTRACT(imm64, 3), EXTRACT(imm64, 4), \
-        EXTRACT(imm64, 5), EXTRACT(imm64, 6), EXTRACT(imm64, 7)
-
-#define LABEL_PLACEHOLDER(index) OPCODE(0), 0x12, 0x34, 0x56, 0x78, index, 0x87, 0x65, 0x43, 0x21
-#define RET(op)                  OPCODE(1), op
-#define ADD(dst, op1, op2)       OPCODE(2), dst, op1, op2
-#define MOVIMM(dst, imm64)       OPCODE(3), dst, IMM64(imm64)
-#define CMP(dst, op1, op2)       OPCODE(4), dst, op1, op2
-#define JCC(cond, label)         OPCODE(5), cond, label
-#define XOR(dst, op1, op2)       OPCODE(6), dst, op1, op2
-#define OR(dst, op1, op2)        OPCODE(7), dst, op1, op2
-#define MUL(dst, op1, op2)       OPCODE(8), dst, op1, op2
-
-/*
-constexpr uint8_t bytecode1[] = {
-    MOVIMM(REG(254), 0x2),
-    CMP(REG(255), REG(0), REG(254)),
-    JCC(REG(255), 0), // jumps to LABEL_PLACEHOLDER(0) if REG(255) != 0 (so REG(0) == 2)
-    RET(REG(254)),
-    LABEL_PLACEHOLDER(0),
-    ADD(REG(0), REG(0), REG(1)),
-    MOVIMM(REG(0), 0x1122334455667788),
-    RET(REG(0)),
-};
-*/
-
-constexpr uint8_t bytecode1[] = {
-    OR(REG(4), REG(0), REG(1)),
-    XOR(REG(5), REG(2), REG(3)),
-    ADD(REG(6), REG(4), REG(5)),
-    RET(REG(6)),
-};
-
-constexpr static VMLabels labels1 = VMLabels(bytecode1);
-
-// This makes sure clang -O2 doesn't optimize the whole VM away
-const uint8_t* bytecode1_ptr = bytecode1;
-
-static __attribute__((optnone)) uint64_t execute_bytecode(
-    const uint8_t* bytecode, const uint32_t* labels, uint64_t r0, uint64_t r1, uint64_t r2, uint64_t r3
-)
+static __attribute__((noinline)) uint64_t
+execute_bytecode(const VMBytecode<>& bytecode, uint64_t r0, uint64_t r1, uint64_t r2, uint64_t r3)
 {
     VMContext ctx;
-    ctx.bytecode = bytecode;
-    ctx.labels   = labels;
+    ctx.bytecode = bytecode.data;
+    ctx.labels   = bytecode.labels;
     ctx.pc       = 0;
     ctx.regs[0]  = r0;
     ctx.regs[1]  = r1;
@@ -263,10 +211,55 @@ static __attribute__((optnone)) uint64_t execute_bytecode(
     }
 }
 
-extern __attribute__((noinline)) uint64_t vm_bytecode1(uint64_t r0, uint64_t r1, uint64_t r2, uint64_t r3)
-{
-    return execute_bytecode(bytecode1, labels1.labels, r0, r1, r2, r3);
-}
+// Helpers to make it easier to write VM bytecode
+#define REG(n) n
+
+#if defined(__LITTLE_ENDIAN__)
+#define EXTRACT(imm64, byte) (((uint64_t)imm64 >> (8 * (byte))) & 0xFF)
+#elif defined(__BIG_ENDIAN__)
+#define EXTRACT(imm64, byte) (((uint64_t)imm64 >> (8 * (7 - byte))) & 0xFF)
+#else
+#error "Failed to detect endianness"
+#endif
+
+#ifdef VMDEBUG
+#define OPCODE(index) 0xFF, index
+#else
+#define OPCODE(index) index
+#endif // VMDEBUG
+#define IMM64(imm64)                                                                               \
+    EXTRACT(imm64, 0), EXTRACT(imm64, 1), EXTRACT(imm64, 2), EXTRACT(imm64, 3), EXTRACT(imm64, 4), \
+        EXTRACT(imm64, 5), EXTRACT(imm64, 6), EXTRACT(imm64, 7)
+
+#define LABEL_PLACEHOLDER(index) OPCODE(0), 0x12, 0x34, 0x56, 0x78, index, 0x87, 0x65, 0x43, 0x21
+#define RET(op)                  OPCODE(1), op
+#define ADD(dst, op1, op2)       OPCODE(2), dst, op1, op2
+#define MOVIMM(dst, imm64)       OPCODE(3), dst, IMM64(imm64)
+#define CMP(dst, op1, op2)       OPCODE(4), dst, op1, op2
+#define JCC(cond, label)         OPCODE(5), cond, label
+#define XOR(dst, op1, op2)       OPCODE(6), dst, op1, op2
+#define OR(dst, op1, op2)        OPCODE(7), dst, op1, op2
+#define MUL(dst, op1, op2)       OPCODE(8), dst, op1, op2
+
+/*
+constexpr static VMBytecode bytecode = VMBytecode({
+    MOVIMM(REG(254), 0x2),
+    CMP(REG(255), REG(0), REG(254)),
+    JCC(REG(255), 0), // jumps to LABEL_PLACEHOLDER(0) if REG(255) != 0 (so REG(0) == 2)
+    RET(REG(254)),
+    LABEL_PLACEHOLDER(0),
+    ADD(REG(0), REG(0), REG(1)),
+    MOVIMM(REG(0), 0x1122334455667788),
+    RET(REG(0)),
+};
+*/
+
+constexpr static VMBytecode bytecode = VMBytecode({
+    OR(REG(4), REG(0), REG(1)),  // r4 = r0 | r1
+    XOR(REG(5), REG(2), REG(3)), // r5 = r2 ^ r3
+    ADD(REG(6), REG(4), REG(5)), // r6 = r4 + r5
+    RET(REG(6)),                 // return r6
+});
 
 int main(int argc, char** argv)
 {
@@ -279,6 +272,6 @@ int main(int argc, char** argv)
     }
 
     printf("arguments: (%" PRIi64 ", %" PRIi64 ", %" PRIi64 ", %" PRIi64 ")\n", args[0], args[1], args[2], args[3]);
-    auto ret = vm_bytecode1(args[0], args[1], args[2], args[3]);
+    auto ret = execute_bytecode(bytecode, args[0], args[1], args[2], args[3]);
     printf("result: %" PRIi64 "\n", ret);
 }

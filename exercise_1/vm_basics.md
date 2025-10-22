@@ -13,7 +13,7 @@ In this exercise we are going to explore the concept of VM obfuscation.
    clang-20 -O3 -fno-slp-vectorize -std=c++17 minivm.cpp -o minivm
    ```
 2. Run the VM (`./minivm 1 2 3 4`) and do the following exercises:
-   - Extract the active VM bytecode (look at the source code).
+   - Extract the active VM bytecode (look at the source code, starting from `main` at the bottom).
    - How many registers does the VM have?
    - Make a list of all the operations and what they do.
    - What does the active VM bytecode do? Write it as C pseudocode.
@@ -25,8 +25,7 @@ In this exercise we are going to explore the concept of VM obfuscation.
 
 If you finish early, here are a few bonus exercises (not required):
 
-1. Extend `minivm.cpp` so it becomes possible to implement `fib(n)` (iterative).
-2. Implement the `fib(n)` function to verify your new opcodes.
+1. Implement `fib(n)` in VM bytecode. You can add new opcodes if necessary.
 
 Do these exercises for `minivm-tailcall.cpp` (make sure to recompile):
 
