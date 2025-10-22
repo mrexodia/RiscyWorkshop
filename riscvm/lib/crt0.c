@@ -7,7 +7,7 @@ static __attribute((noinline)) void exit(int exit_code)
 {
     register uintptr_t a0 asm("a0") = exit_code;
     register uintptr_t a7 asm("a7") = 10000;
-    asm volatile("scall" : "+r"(a0) : "r"(a7) : "memory");
+    asm volatile("ecall" : "+r"(a0) : "r"(a7) : "memory");
 }
 
 typedef struct

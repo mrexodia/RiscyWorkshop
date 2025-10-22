@@ -5,8 +5,8 @@
 // ty magic <3
 // https://github.com/JustasMasiulis/lazy_importer/blob/master/include/lazy_importer.hpp
 
-#define CONTAINING_RECORD(address, type, field) (\
-    (type *)((char*)(address) -(unsigned long)(&((type *)0)->field)))
+#define CONTAINING_RECORD(address, type, field) \
+    ((type*)((char*)(address) - (unsigned long)(&((type*)0)->field)))
 
 namespace win
 {
@@ -260,7 +260,7 @@ ALWAYS_INLINE inline uintptr_t find_ntdll(win::PEB_T* peb)
     for (auto itr = begin->Flink; itr != begin; itr = itr->Flink)
     {
         auto entry = CONTAINING_RECORD(itr, win::LDR_DATA_TABLE_ENTRY_T, InLoadOrderLinks);
-        auto base = (uintptr_t)entry->DllBase;
+        auto base  = (uintptr_t)entry->DllBase;
         if ((uintptr_t)begin >= base && (uintptr_t)begin < base + entry->SizeOfImage)
         {
             return (uintptr_t)entry->DllBase;
@@ -309,7 +309,7 @@ template <class... Ts> ALWAYS_INLINE inline uint32_t invoke_syscall(uintptr_t fu
     register uint64_t _a0 asm("a0") = (uint64_t)func_addr;
     register uint64_t _a1 asm("a1") = (uint64_t)&arg_array;
 
-    asm volatile("scall" : "+r"(_a0) : "r"(_a1), "r"(syscall_id));
+    asm volatile("ecall" : "+r"(_a0) : "r"(_a1), "r"(syscall_id));
     return _a0;
 }
 

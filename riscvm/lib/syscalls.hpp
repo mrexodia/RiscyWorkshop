@@ -17,13 +17,13 @@ enum class e_syscall : uint32_t
     memcmp  = 10009,
 
     print_wstring = 10100,
-    print_string = 10101,
-    print_int = 10102,
-    print_hex = 10103,
+    print_string  = 10101,
+    print_int     = 10102,
+    print_hex     = 10103,
     print_tag_hex = 10104,
 
     host_call = 20000,
-    get_peb = 20001,
+    get_peb   = 20001,
 };
 
 namespace detail
@@ -32,7 +32,7 @@ ALWAYS_INLINE inline uint64_t syscall_stub(uint64_t code)
 {
     register uint64_t syscall_id asm("a7") = code;
     register uint64_t _a0 asm("a0")        = 0;
-    asm volatile("scall" : "+r"(_a0) : "r"(syscall_id));
+    asm volatile("ecall" : "+r"(_a0) : "r"(syscall_id));
     return _a0;
 }
 
@@ -40,7 +40,7 @@ template <class T0> ALWAYS_INLINE inline uint64_t syscall_stub(uint64_t code, T0
 {
     register uint64_t syscall_id asm("a7") = code;
     register uint64_t _a0 asm("a0")        = _0;
-    asm volatile("scall" : "+r"(_a0) : "r"(syscall_id));
+    asm volatile("ecall" : "+r"(_a0) : "r"(syscall_id));
     return _a0;
 }
 
@@ -49,7 +49,7 @@ template <class T0, class T1> inline ALWAYS_INLINE uint64_t syscall_stub(uint64_
     register uint64_t syscall_id asm("a7") = code;
     register uint64_t _a0 asm("a0")        = _0;
     register uint64_t _a1 asm("a1")        = _1;
-    asm volatile("scall" : "+r"(_a0) : "r"(_a1), "r"(syscall_id));
+    asm volatile("ecall" : "+r"(_a0) : "r"(_a1), "r"(syscall_id));
     return _a0;
 }
 
@@ -60,7 +60,7 @@ ALWAYS_INLINE inline uint64_t syscall_stub(uint64_t code, T0 _0, T1 _1, T2 _2)
     register uint64_t _a0 asm("a0")        = _0;
     register uint64_t _a1 asm("a1")        = _1;
     register uint64_t _a2 asm("a2")        = _2;
-    asm volatile("scall" : "+r"(_a0) : "r"(_a1), "r"(_a2), "r"(syscall_id));
+    asm volatile("ecall" : "+r"(_a0) : "r"(_a1), "r"(_a2), "r"(syscall_id));
     return _a0;
 }
 
@@ -72,7 +72,7 @@ ALWAYS_INLINE inline uint64_t syscall_stub(uint64_t code, T0 _0, T1 _1, T2 _2, T
     register uint64_t _a1 asm("a1")        = _1;
     register uint64_t _a2 asm("a2")        = _2;
     register uint64_t _a3 asm("a3")        = _3;
-    asm volatile("scall" : "+r"(_a0) : "r"(_a1), "r"(_a2), "r"(_a3), "r"(syscall_id));
+    asm volatile("ecall" : "+r"(_a0) : "r"(_a1), "r"(_a2), "r"(_a3), "r"(syscall_id));
     return _a0;
 }
 
@@ -85,7 +85,7 @@ ALWAYS_INLINE inline uint64_t syscall_stub(uint64_t code, T0 _0, T1 _1, T2 _2, T
     register uint64_t _a2 asm("a2")        = _2;
     register uint64_t _a3 asm("a3")        = _3;
     register uint64_t _a4 asm("a4")        = _4;
-    asm volatile("scall" : "+r"(_a0) : "r"(_a1), "r"(_a2), "r"(_a3), "r"(_a4), "r"(syscall_id));
+    asm volatile("ecall" : "+r"(_a0) : "r"(_a1), "r"(_a2), "r"(_a3), "r"(_a4), "r"(syscall_id));
     return _a0;
 }
 
@@ -99,7 +99,7 @@ ALWAYS_INLINE inline uint64_t syscall_stub(uint64_t code, T0 _0, T1 _1, T2 _2, T
     register uint64_t _a3 asm("a3")        = _3;
     register uint64_t _a4 asm("a4")        = _4;
     register uint64_t _a5 asm("a5")        = _5;
-    asm volatile("scall" : "+r"(_a0) : "r"(_a1), "r"(_a2), "r"(_a3), "r"(_a4), "r"(_a5), "r"(syscall_id));
+    asm volatile("ecall" : "+r"(_a0) : "r"(_a1), "r"(_a2), "r"(_a3), "r"(_a4), "r"(_a5), "r"(syscall_id));
     return _a0;
 }
 
@@ -110,8 +110,7 @@ template <class... Ts> ALWAYS_INLINE inline uint64_t invoke_syscall_stub(e_sysca
 
 } // namespace detail
 
-template <class... Ts>
-ALWAYS_INLINE inline uint64_t syscall(e_syscall code, Ts... args)
+template <class... Ts> ALWAYS_INLINE inline uint64_t syscall(e_syscall code, Ts... args)
 {
     return detail::invoke_syscall_stub(code, args...);
 }
