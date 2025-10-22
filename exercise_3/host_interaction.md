@@ -1,5 +1,11 @@
 # Host interaction
 
+**Change the working directory:**
+
+```sh
+cd exercise_3
+```
+
 Rmember: look at `exercise_2/shellcode.md` for compilation instructions. You can use `./build.py --run dbgprint.c` to quickly compile and run your payloads.
 
 Exercises:

@@ -1,6 +1,6 @@
 # RISC-V Shellcode
 
-Change the working directory:
+**Change the working directory:**
 
 ```sh
 cd exercise_2
@@ -61,7 +61,7 @@ Exercises:
 1. Run the interpreter with the `--trace` argument and inspect the trace with `code hello.pre.bin.trace`
 2. Load `hello.elf` in Ghidra (make sure you match the base address from the trace)
 3. Go over every instruction in your disassembler and write down a comment in pseudocode of what it does.
-   - RISC-V Instruction Set Specifications: https://msyksphinz-self.github.io/riscv-isadoc/html/index.html
+   - RISC-V Instruction Set Specifications: https://msyksphinz-self.github.io/riscv-isadoc
    - Official reference: https://five-embeddev.com/riscv-user-isa-manual/Priv-v1.12/rv64.html
    - Pseudo Instructions: https://stackoverflow.com/a/65008687/1806760
 4. What happens if you comment out the call to `exit` and let `_start` return? Why does this happen?

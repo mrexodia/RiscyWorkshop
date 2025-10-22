@@ -1,6 +1,6 @@
 # Exercise 1: VM Obfuscation Basics
 
-Change the working directory:
+**Change the working directory:**
 
 ```sh
 cd exercise_1

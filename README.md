@@ -19,8 +19,8 @@ This repository uses a [`devcontainer.json`](./.devcontainer/devcontainer.json) 
 5. Then `Create codespace`
 6. Wait a ~5 minutes while the image is loading ☕
    - Press `Show log` to see progress
-   - Reload the page if it appears stuck
-   - **Firefox does not work, use Chrome!**
+   - Reload the page if it appears stuck or syntax highlighting fails
+   - **If Firefox does not work well, try Chrome!**
 
 | ![](.devcontainer/new-codespace.png) | ![](.devcontainer/machine-type.png) |
 |---|---|
@@ -49,7 +49,6 @@ WARNING: DO NOT RUN THIS COMMAND FROM THE PENDRIVE, IT WILL BE SLOW
 <details>
 
 <summary><sub>At a later date you can set things up locally with Docker Desktop</sub></summary>
-
 
 - Install/Update [Docker Desktop](https://www.docker.com/products/docker-desktop/) ([alternatives](https://code.visualstudio.com/remote/advancedcontainers/docker-options))
 - **Start Docker Desktop**
