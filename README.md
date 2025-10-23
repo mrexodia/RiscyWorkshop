@@ -18,9 +18,14 @@ This repository uses a [`devcontainer.json`](./.devcontainer/devcontainer.json) 
 4. Change `Machine type` to `4-core`
 5. Then `Create codespace`
 6. Wait a ~5 minutes while the image is loading ☕
-   - Press `Show log` to see progress
-   - Reload the page if it appears stuck or syntax highlighting fails
-   - **If Firefox does not work well, try Chrome!**
+
+Troubleshooting:
+- **Firefox (specifically on Linux) often does not work, try Chrome!**
+- Reload the page if
+  - Syntax highlighting fails to work
+  - Startup takes too long
+- If pasting from the clipboard fails, explicitly grant permission (settings icon on the left of the URL)
+- **Remember**: save files before trying to recompile!
 
 | ![](.devcontainer/new-codespace.png) | ![](.devcontainer/machine-type.png) |
 |---|---|

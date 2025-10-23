@@ -51,21 +51,24 @@ struct VMContext
     }
 };
 
-template <size_t MaxLabels = 5, size_t MaxBytecode = 1024> struct VMBytecode
+// NOTE: You do not need to understand this for the exercises
+template <size_t MaxLabels = 5, size_t MaxBytecode = 1024> struct VMPreprocessor
 {
-    template <size_t Size> constexpr VMBytecode(const uint8_t (&bytecode)[Size]) : labels()
+    template <size_t Size> constexpr VMPreprocessor(const uint8_t (&bytecode)[Size]) : labels(), size(Size)
     {
+        // Copy the bytecode to the data member
+        for (size_t i = 0; i < Size; i++)
+        {
+            data[i] = bytecode[i];
+        }
+
         // Initialize the labels to -1
         for (size_t i = 0; i < std::size(labels); i++)
         {
             labels[i] = -1;
         }
 
-        for (size_t i = 0; i < Size; i++)
-        {
-            data[i] = bytecode[i];
-        }
-
+        // Look for LABEL_PLACEHOLDER and create a lookup table for the index
         for (size_t i = 0; i + 10 < Size; i++)
         {
             if (bytecode[i] == 0 && bytecode[i + 1] == 0x12 && bytecode[i + 2] == 0x34
@@ -83,13 +86,14 @@ template <size_t MaxLabels = 5, size_t MaxBytecode = 1024> struct VMBytecode
                 }
                 else
                 {
-                    labels[index] = -2;
+                    throw "Duplicate LABEL_PLACEHOLDER detected";
                 }
             }
         }
     }
 
     uint32_t labels[MaxLabels];
+    size_t   size;
     uint8_t  data[MaxBytecode] = {};
 };
 
@@ -163,7 +167,7 @@ static ALWAYS_INLINE void handler_mul(VMContext& ctx)
 }
 
 static __attribute__((noinline)) uint64_t
-execute_bytecode(const VMBytecode<>& bytecode, uint64_t r0, uint64_t r1, uint64_t r2, uint64_t r3)
+execute_bytecode(const VMPreprocessor<>& bytecode, uint64_t r0, uint64_t r1, uint64_t r2, uint64_t r3)
 {
     VMContext ctx;
     ctx.bytecode = bytecode.data;
@@ -246,7 +250,7 @@ execute_bytecode(const VMBytecode<>& bytecode, uint64_t r0, uint64_t r1, uint64_
 #define MUL(dst, op1, op2)       OPCODE(8), dst, op1, op2
 
 /*
-constexpr static VMBytecode bytecode = VMBytecode({
+constexpr static auto bytecode = VMPreprocessor({
     MOVIMM(REG(254), 0x2),
     CMP(REG(255), REG(0), REG(254)),
     JCC(REG(255), 0), // jumps to LABEL_PLACEHOLDER(0) if REG(255) != 0 (so REG(0) == 2)
@@ -255,14 +259,14 @@ constexpr static VMBytecode bytecode = VMBytecode({
     ADD(REG(0), REG(0), REG(1)),
     MOVIMM(REG(0), 0x1122334455667788),
     RET(REG(0)),
-};
+});
 */
 
-constexpr static VMBytecode bytecode = VMBytecode({
-    OR(REG(4), REG(0), REG(1)),  // r4 = r0 | r1
-    XOR(REG(5), REG(2), REG(3)), // r5 = r2 ^ r3
-    ADD(REG(6), REG(4), REG(5)), // r6 = r4 + r5
-    RET(REG(6)),                 // return r6
+constexpr static auto bytecode = VMPreprocessor({
+    OR(REG(4), REG(0), REG(1)),
+    XOR(REG(5), REG(2), REG(3)),
+    ADD(REG(6), REG(4), REG(5)),
+    RET(REG(6)),
 });
 
 int main(int argc, char** argv)
@@ -276,6 +280,12 @@ int main(int argc, char** argv)
     }
 
     printf("arguments: (%" PRIi64 ", %" PRIi64 ", %" PRIi64 ", %" PRIi64 ")\n", args[0], args[1], args[2], args[3]);
+    printf("data: ");
+    for (size_t i = 0; i < bytecode.size; i++)
+    {
+        printf("%02X", bytecode.data[i]);
+    }
+    puts("");
     auto ret = execute_bytecode(bytecode, args[0], args[1], args[2], args[3]);
     printf("result: %" PRIi64 "\n", ret);
 }

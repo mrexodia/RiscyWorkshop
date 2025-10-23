@@ -14,8 +14,8 @@ In this exercise we are going to explore the concept of VM obfuscation.
    ```
 2. Run the VM (`./minivm 1 2 3 4`) and do the following exercises:
    - Extract the active VM bytecode (look at the source code, starting from `main` at the bottom).
-   - How many registers does the VM have?
-   - Make a list of all the operations and what they do.
+   - How many registers does the VM have in the context?
+   - Make a list of all available opcodes, their index and what they do.
    - What does the active VM bytecode do? Write it as C pseudocode.
 3. For this exercise you will write your own bytecode. Look at the commented-out example code to figure out how to do it.
    - Implement a function that adds the first two arguments together: `return a + b`
