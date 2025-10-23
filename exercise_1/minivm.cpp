@@ -61,9 +61,13 @@ template <size_t MaxLabels = 5, size_t MaxBytecode = 1024> struct VMBytecode
             labels[i] = -1;
         }
 
-        for (size_t i = 0; i + 10 < Size; i++)
+        for (size_t i = 0; i < Size; i++)
         {
             data[i] = bytecode[i];
+        }
+
+        for (size_t i = 0; i + 10 < Size; i++)
+        {
             if (bytecode[i] == 0 && bytecode[i + 1] == 0x12 && bytecode[i + 2] == 0x34
                 && bytecode[i + 3] == 0x56 && bytecode[i + 4] == 0x78 && bytecode[i + 6] == 0x87
                 && bytecode[i + 7] == 0x65 && bytecode[i + 8] == 0x43 && bytecode[i + 9] == 0x21)
