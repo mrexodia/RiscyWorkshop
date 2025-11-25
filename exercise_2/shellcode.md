@@ -25,6 +25,8 @@ This should print:
 please supply a RV64I program to run!
 ```
 
+Look at `hello.c` in the editor.
+
 Compile `hello.c` for `rv64im`:
 
 ```sh

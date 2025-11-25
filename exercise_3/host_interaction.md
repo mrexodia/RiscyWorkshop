@@ -6,7 +6,7 @@
 cd exercise_3
 ```
 
-Rmember: look at `exercise_2/shellcode.md` for compilation instructions. You can use `./build.py --run dbgprint.c` to quickly compile and run your payloads.
+Remember: look at `exercise_2/shellcode.md` for compilation instructions. You can use `./build.py --run dbgprint.c` to quickly compile and run your payloads.
 
 Exercises:
 1. Look in `riscvm.cpp` and make a list of all the available syscalls and their numbers

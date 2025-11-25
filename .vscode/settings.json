@@ -12,6 +12,7 @@
     "workbench.startupEditor": "none",
     "editor.formatOnSave": false,
     "C_Cpp.intelliSenseEngine": "disabled",
+    "terminal.integrated.suggest.enabled": false,
     "[cpp]": {
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"

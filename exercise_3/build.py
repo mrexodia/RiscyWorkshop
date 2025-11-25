@@ -33,10 +33,7 @@ def main():
         raise FileNotFoundError(f"File not found: {c_file}")
 
     basename = os.path.basename(c_file)
-    file, ext = os.path.splitext(basename)
-
-    print(file)
-    print(ext)
+    file, _ = os.path.splitext(basename)
 
     obj = f"{file}.o"
     cmd("clang-20", "-target", "riscv64", "-march=rv64im", "-mcmodel=medany", "-Os", "-c", c_file, "-o", obj)
