@@ -51,7 +51,6 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${riscvm-crt0_SOURCES})
 # Target: hello
 set(hello_SOURCES
 	cmake.toml
-	"crt/minicrt.c"
 	"src/hello.c"
 )
 
@@ -103,7 +102,6 @@ endif()
 # Target: msgbox
 set(msgbox_SOURCES
 	cmake.toml
-	"crt/minicrt.c"
 	"src/msgbox.c"
 )
 
@@ -155,7 +153,6 @@ endif()
 # Target: c2test
 set(c2test_SOURCES
 	cmake.toml
-	"crt/minicrt.c"
 	"src/c2test.c"
 )
 
@@ -207,7 +204,6 @@ endif()
 # Target: lsass
 set(lsass_SOURCES
 	cmake.toml
-	"crt/minicrt.c"
 	"src/lsass.cpp"
 )
 

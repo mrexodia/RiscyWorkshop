@@ -17,7 +17,6 @@ sources = ["crt/riscvm-crt0.cpp"]
 [template.riscvm]
 type = "executable"
 add-function = "add_riscvm_executable"
-sources = ["crt/minicrt.c"]
 msvc.compile-options = ["/GR-", "/EHs-"]
 clang.compile-options = ["-fno-exceptions", "-fno-rtti", "-Wno-inconsistent-dllimport"]
 compile-definitions = ["_HAS_EXCEPTIONS=0"] # TODO: MSVC only?
