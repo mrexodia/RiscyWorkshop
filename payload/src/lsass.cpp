@@ -64,5 +64,5 @@ int main()
     }
 
     auto lsassPid = findLsass();
-    printf("lsass.exe: %u", lsassPid);
+    printf("lsass.exe: %lu", lsassPid);
 }
