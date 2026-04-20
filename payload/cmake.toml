@@ -19,7 +19,7 @@ type = "executable"
 add-function = "add_riscvm_executable"
 msvc.compile-options = ["/GR-", "/EHs-"]
 clang.compile-options = ["-fno-exceptions", "-fno-rtti", "-Wno-inconsistent-dllimport"]
-compile-definitions = ["_HAS_EXCEPTIONS=0"] # TODO: MSVC only?
+compile-definitions = ["_HAS_EXCEPTIONS=0", "__USE_MINGW_ANSI_STDIO=0"] # TODO: MSVC only?
 msvc.link-options = ["/INCREMENTAL:NO", "/DEBUG"]
 link-libraries = ["::riscvm-crt0", "ntdll.lib"]
 

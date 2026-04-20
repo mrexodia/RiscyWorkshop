@@ -61,6 +61,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${hello_SOURCES})
 
 target_compile_definitions(hello PRIVATE
 	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
 )
 
 if(MSVC) # msvc
@@ -112,6 +113,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${msgbox_SOURCES})
 
 target_compile_definitions(msgbox PRIVATE
 	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
 )
 
 if(MSVC) # msvc
@@ -163,6 +165,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${c2test_SOURCES})
 
 target_compile_definitions(c2test PRIVATE
 	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
 )
 
 if(MSVC) # msvc
@@ -214,6 +217,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${lsass_SOURCES})
 
 target_compile_definitions(lsass PRIVATE
 	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
 )
 
 if(MSVC) # msvc

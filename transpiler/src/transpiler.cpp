@@ -235,68 +235,6 @@ static void HandleImports(Module& module, const std::vector<Function*> importedF
 
     auto kernel32_base = loadLibrary("kernel32.dll");
 
-    auto findAnyImportDll = [&](std::initializer_list<const char*> names) -> std::string
-    {
-        for (const char* name : names)
-        {
-            auto itr = importmap.find(name);
-            if (itr != importmap.end())
-            {
-                return itr->second;
-            }
-        }
-        return {};
-    };
-
-    auto findPrintfLikeDll = [&]() -> std::string
-    {
-        auto dll = findAnyImportDll(
-            {"printf", "puts", "fprintf", "vfprintf", "vprintf", "sprintf", "vsprintf", "_snprintf", "_vsnprintf"}
-        );
-        if (!dll.empty())
-        {
-            return dll;
-        }
-        return findAnyImportDll({"malloc", "free", "memcpy", "memset", "strlen"});
-    };
-
-    auto resolveImportSpec = [&](const std::string& requestedName) -> std::pair<std::string, std::string>
-    {
-        auto itr = importmap.find(requestedName);
-        if (itr != importmap.end())
-        {
-            return {requestedName, itr->second};
-        }
-
-        static const std::unordered_map<std::string, std::string> mingwPrintfAliases = {
-            {"__mingw_printf", "printf"},
-            {"__mingw_vprintf", "vprintf"},
-            {"__mingw_fprintf", "fprintf"},
-            {"__mingw_vfprintf", "vfprintf"},
-            {"__mingw_sprintf", "sprintf"},
-            {"__mingw_vsprintf", "vsprintf"},
-        };
-
-        auto aliasItr = mingwPrintfAliases.find(requestedName);
-        if (aliasItr != mingwPrintfAliases.end())
-        {
-            auto realName = aliasItr->second;
-            itr           = importmap.find(realName);
-            if (itr != importmap.end())
-            {
-                return {realName, itr->second};
-            }
-
-            auto dll = findPrintfLikeDll();
-            if (!dll.empty())
-            {
-                return {realName, dll};
-            }
-        }
-
-        return {};
-    };
-
     for (auto function : importedFunctions)
     {
         if (importmap.empty())
@@ -304,16 +242,13 @@ static void HandleImports(Module& module, const std::vector<Function*> importedF
             throw std::runtime_error("dllimport function found, but no -importmap specified");
         }
 
-        auto requestedImportName     = function->getName().str();
-        auto [importName, importDll] = resolveImportSpec(requestedImportName);
-        if (importName.empty())
+        auto importName = function->getName().str();
+        auto importItr  = importmap.find(importName);
+        if (importItr == importmap.end())
         {
-            throw std::runtime_error("Imported function not found in import map: " + requestedImportName);
+            throw std::runtime_error("Imported function not found in import map: " + importName);
         }
-        if (requestedImportName != importName)
-        {
-            outs() << "[mingw] " << requestedImportName << " -> " << importDll << ":" << importName << "\n";
-        }
+        auto importDll = importItr->second;
         if (function->getDLLStorageClass() != GlobalValue::DefaultStorageClass)
         {
             function->setDLLStorageClass(GlobalValue::DefaultStorageClass);
@@ -470,7 +405,7 @@ static void ProcessModule(Module& module, const ImportMap& importmap)
         {
             importedFunctions.push_back(&function);
         }
-        else if (function.isDeclaration() && (importmap.count(name.str()) != 0 || name.starts_with("__mingw_")))
+        else if (function.isDeclaration() && importmap.count(name.str()) != 0)
         {
             importedFunctions.push_back(&function);
         }
