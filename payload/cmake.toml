@@ -36,3 +36,6 @@ sources = ["src/msgbox.c"]
 type = "riscvm"
 sources = ["src/c2test.c"]
 
+[target.lsass]
+type = "riscvm"
+sources = ["src/lsass.cpp"]

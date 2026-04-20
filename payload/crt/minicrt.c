@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <stdarg.h>
 
+#if 0
 NTSYSAPI
 void* NTAPI RtlGetCurrentPeb(VOID);
 
@@ -67,7 +68,7 @@ int __cdecl puts(const char* s)
 
 int __cdecl printf(const char* __restrict__ fmt, ...)
 {
-#if 0
+#if 1
     va_list ap;
     va_start(ap, fmt);
 
@@ -75,8 +76,10 @@ int __cdecl printf(const char* __restrict__ fmt, ...)
     int  result = vsprintf(buffer, sizeof(buffer), fmt, ap);
 
     va_end(ap);
+    return result;
 #endif
     // TODO: implement with something in ntdll
     puts(fmt);
     return 1;
 }
+#endif

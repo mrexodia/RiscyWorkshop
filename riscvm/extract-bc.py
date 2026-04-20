@@ -226,6 +226,10 @@ def main():
                 if name not in visited:
                     f.write(f"{name}:ntdll.dll\n".encode("utf-8"))
 
+            # HACK: support MinGW's printf wrapper and the underlying CRT export
+            f.write(f"__mingw_printf:msvcrt.dll\n".encode("utf-8"))
+            f.write(f"printf:msvcrt.dll\n".encode("utf-8"))
+
     # Recover the bitcode and write it to a file
     with open(output, "wb") as f:
         data = bytearray(llvmbc.get_data())

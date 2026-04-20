@@ -115,6 +115,59 @@ static void HandleImports(Module& module, const std::vector<Function*> importedF
     auto uintptrTy = IntegerType::get(context, ptrSize);
     auto int32Ty   = Type::getInt32Ty(context);
 
+    auto castHostCallArg = [&](IRBuilder<>& builder, Value* arg, const Twine& argName) -> Value*
+    {
+        auto argTy = arg->getType();
+        if (argTy->isPointerTy())
+        {
+            return arg;
+        }
+        else if (argTy->isIntegerTy())
+        {
+            auto size = argTy->getPrimitiveSizeInBits().getFixedValue();
+            if (size > ptrSize)
+            {
+                throw std::runtime_error("Parameter type size bigger than pointer size: " + std::to_string(size));
+            }
+            else if (size < ptrSize)
+            {
+                arg = builder.CreateZExt(arg, uintptrTy, argName + "_zext");
+            }
+
+            return builder.CreateIntToPtr(arg, ptrTy, argName + "_cast");
+        }
+
+        throw std::runtime_error("Unsupported import argument type");
+    };
+
+    auto castHostCallReturn = [&](IRBuilder<>& builder, Value* retValue, Type* returnTy) -> Value*
+    {
+        if (returnTy->isVoidTy())
+        {
+            return nullptr;
+        }
+        else if (returnTy->isPointerTy())
+        {
+            return retValue;
+        }
+        else if (returnTy->isIntegerTy())
+        {
+            auto retCast = builder.CreatePtrToInt(retValue, uintptrTy, "return_cast");
+            auto size    = returnTy->getPrimitiveSizeInBits().getFixedValue();
+            if (size > ptrSize)
+            {
+                throw std::runtime_error("Return type size bigger than pointer size: " + std::to_string(size));
+            }
+            else if (size < ptrSize)
+            {
+                return builder.CreateTrunc(retCast, returnTy, "return_trunc");
+            }
+            return retCast;
+        }
+
+        throw std::runtime_error("Unsupported return type");
+    };
+
     auto resolveDllTy = FunctionType::get(ptrTy, {int32Ty}, false);
     auto resolveDllFn = reservedFunction("riscvm_resolve_dll", resolveDllTy);
 
@@ -189,13 +242,25 @@ static void HandleImports(Module& module, const std::vector<Function*> importedF
             throw std::runtime_error("dllimport function found, but no -importmap specified");
         }
 
-        auto importName = function->getName().str();
-        if (importmap.count(importName) == 0)
+        auto importMapName = function->getName().str();
+        auto importName    = importMapName;
+        if (importName.find("__mingw_") == 0)
+        {
+            outs() << "[mingw] " << importName << "\n";
+            importName = importName.substr(8);
+        }
+
+        auto importItr = importmap.find(importMapName);
+        if (importItr == importmap.end())
+        {
+            importItr = importmap.find(importName);
+        }
+        if (importItr == importmap.end())
         {
             throw std::runtime_error("Imported function not found in import map: " + importName);
         }
 
-        auto importDll = importmap.at(importName);
+        auto importDll = importItr->second;
         if (function->getDLLStorageClass() != GlobalValue::DefaultStorageClass)
         {
             function->setDLLStorageClass(GlobalValue::DefaultStorageClass);
@@ -206,11 +271,6 @@ static void HandleImports(Module& module, const std::vector<Function*> importedF
             outs() << "[MSVCRT] ";
         }
         outs() << importDll << ":" << importName << "\n";
-
-        if (function->isVarArg())
-        {
-            throw std::runtime_error("Unsupported vararg import " + importName);
-        }
 
         auto base = loadLibrary(importDll);
         auto ptr  = resolveBuilder.CreateCall(
@@ -229,6 +289,50 @@ static void HandleImports(Module& module, const std::vector<Function*> importedF
         // Store the resolved address in the global
         resolveBuilder.CreateStore(ptr, importGlobal);
 
+        if (function->isVarArg())
+        {
+            std::vector<CallBase*> calls;
+            for (Use& use : function->uses())
+            {
+                auto* user = use.getUser();
+                auto* call = dyn_cast<CallBase>(user);
+                if (call == nullptr || call->getCalledOperand()->stripPointerCasts() != function)
+                {
+                    throw std::runtime_error("Unsupported use of vararg import " + importName);
+                }
+                calls.push_back(call);
+            }
+
+            for (CallBase* call : calls)
+            {
+                IRBuilder<>         builder(call);
+                HostCall            hostCall(builder, hostCallFn);
+                std::vector<Value*> args;
+
+                for (size_t i = 0; i < call->arg_size(); i++)
+                {
+                    auto argName = "arg" + std::to_string(i);
+                    args.push_back(castHostCallArg(builder, call->getArgOperand(i), argName));
+                }
+
+                auto address  = builder.CreateLoad(ptrTy, importGlobal, "import_address");
+                auto retValue = hostCall.CreateCall(address, args, call->getType()->isVoidTy() ? "" : "return");
+                auto castRet  = castHostCallReturn(builder, retValue, call->getType());
+
+                if (call->getType()->isVoidTy())
+                {
+                    call->eraseFromParent();
+                }
+                else
+                {
+                    call->replaceAllUsesWith(castRet);
+                    call->eraseFromParent();
+                }
+            }
+
+            continue;
+        }
+
         // Create the import host call stub
         IRBuilder<>         builder(BasicBlock::Create(module.getContext(), "entry", function));
         HostCall            hostCall(builder, hostCallFn);
@@ -236,72 +340,21 @@ static void HandleImports(Module& module, const std::vector<Function*> importedF
 
         for (size_t i = 0; i < function->arg_size(); i++)
         {
-            Value* arg     = function->getArg(i);
-            auto   argTy   = arg->getType();
-            auto   argName = "arg" + std::to_string(i);
-
-            if (argTy->isPointerTy())
-            {
-                args.push_back(arg);
-            }
-            else if (argTy->isIntegerTy())
-            {
-                // outs() << "  arg[" << i << "]: " << size << " <> " << ptrSize << "\n";
-                auto size = argTy->getPrimitiveSizeInBits().getFixedValue();
-                if (size > ptrSize)
-                {
-                    throw std::runtime_error(
-                        "Parameter type size bigger than pointer size: " + std::to_string(size)
-                    );
-                }
-                else if (size < ptrSize)
-                {
-                    arg = builder.CreateZExt(arg, uintptrTy, argName + "_zext");
-                }
-
-                auto castValue = builder.CreateIntToPtr(arg, ptrTy, argName + "_cast");
-                args.push_back(castValue);
-            }
-            else
-            {
-                throw std::runtime_error("Unsupported import argument type");
-            }
+            auto argName = "arg" + std::to_string(i);
+            args.push_back(castHostCallArg(builder, function->getArg(i), argName));
         }
 
         auto address  = builder.CreateLoad(ptrTy, importGlobal, "import_address");
         auto retValue = hostCall.CreateCall(address, args, "return");
+        auto castRet  = castHostCallReturn(builder, retValue, function->getReturnType());
 
-        // TODO: cast that shit
-        auto returnTy = function->getReturnType();
-        if (returnTy->isVoidTy())
+        if (function->getReturnType()->isVoidTy())
         {
             builder.CreateRetVoid();
         }
-        else if (returnTy->isPointerTy())
-        {
-            builder.CreateRet(retValue);
-        }
-        else if (returnTy->isIntegerTy())
-        {
-            auto retCast = builder.CreatePtrToInt(retValue, uintptrTy, "return_cast");
-            auto size    = returnTy->getPrimitiveSizeInBits().getFixedValue();
-            if (size > ptrSize)
-            {
-                throw std::runtime_error("Return type size bigger than pointer size: " + std::to_string(size));
-            }
-            else if (size < ptrSize)
-            {
-                auto retTrunc = builder.CreateTrunc(retCast, returnTy, "return_trunc");
-                builder.CreateRet(retTrunc);
-            }
-            else
-            {
-                builder.CreateRet(retCast);
-            }
-        }
         else
         {
-            throw std::runtime_error("Unsupported return type");
+            builder.CreateRet(castRet);
         }
 
         // Prevent the import stub from being inlined
