@@ -34,8 +34,8 @@ RUN apt update \
  && rm -rf /var/lib/apt/lists/*
 
 # llvm-mingw (https://github.com/mstorsjo/llvm-mingw)
-ARG LLVM_MINGW=llvm-mingw-20250528-ucrt-ubuntu-22.04-x86_64
-RUN wget https://github.com/mstorsjo/llvm-mingw/releases/download/20250528/${LLVM_MINGW}.tar.xz \
+ARG LLVM_MINGW=llvm-mingw-20250613-msvcrt-ubuntu-22.04-x86_64
+RUN wget https://github.com/mstorsjo/llvm-mingw/releases/download/20250613/${LLVM_MINGW}.tar.xz \
  && tar -xf ${LLVM_MINGW}.tar.xz \
  && rm ${LLVM_MINGW}.tar.xz \
  && mv ${LLVM_MINGW} llvm-mingw
