@@ -38,7 +38,7 @@ def main():
     obj = f"{file}.o"
     cmd("clang-20", "-target", "riscv64", "-march=rv64im", "-mcmodel=medany", "-Os", "-c", c_file, "-o", obj)
     if args.disassemble:
-        output = cmd("llvm-objdump-20", "--disassemble", "hello.o")
+        output = cmd("llvm-objdump-20", "--disassemble", obj)
         print(output)
     elf = f"{file}.elf"
     map = f"{file}.map"

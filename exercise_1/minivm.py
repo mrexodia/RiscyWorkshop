@@ -26,7 +26,7 @@ class VMContext:
         """Fetch 64-bit immediate value (little-endian)"""
         imm_bytes = self.bytecode[self.pc:self.pc + 8]
         self.pc += 8
-        return struct.unpack('<Q', bytes(imm_bytes))[0]
+        return struct.unpack('<q', bytes(imm_bytes))[0]
 
 # NOTE: You do not need to understand this for the exercises
 class VMPreprocessor:
