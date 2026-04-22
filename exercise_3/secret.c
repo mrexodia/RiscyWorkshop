@@ -31,10 +31,25 @@ void _start() __attribute__((section(".text.start")));
 
 void _start()
 {
-    uint64_t puts_addr = resolve_import(0, "puts");
     uint64_t args[13];
-    args[0] = (uint64_t)"Hello from RISC-V!";
+    char     buffer[256];
+
+    uint64_t open_addr = resolve_import("libc.so.6", "open");
+    args[0]            = (uint64_t)"secret.txt";
+    args[1]            = 0; // flags (O_RDONLY)
+    args[2]            = 0; // mode (unused)
+    uint64_t fd        = host_call(open_addr, args);
+
+    uint64_t read_addr = resolve_import("libc.so.6", "read");
+    args[0]            = fd;
+    args[1]            = (uint64_t)buffer; // buffer
+    args[2]            = sizeof(buffer);   // count
+    host_call(read_addr, args);
+
+    uint64_t puts_addr = resolve_import("libc.so.6", "puts");
+    args[0]            = (uint64_t)buffer;
     host_call(puts_addr, args);
+
     exit(0);
     asm volatile("ebreak");
 }

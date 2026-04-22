@@ -262,11 +262,47 @@ constexpr static auto bytecode = VMPreprocessor({
 });
 */
 
+constexpr static auto add = VMPreprocessor({
+    ADD(REG(2), REG(0), REG(1)),
+    RET(REG(2)),
+});
+
+constexpr static auto mul = VMPreprocessor({
+    MUL(REG(2), REG(0), REG(1)),
+    RET(REG(2)),
+});
+
+constexpr static auto sub = VMPreprocessor({
+    MOVIMM(REG(2), -1),
+    MUL(REG(2), REG(2), REG(1)),
+    ADD(REG(0), REG(0), REG(2)),
+    RET(REG(0)),
+});
+
+constexpr static auto eq42 = VMPreprocessor({
+    MOVIMM(REG(2), 42),          // r2 = 42
+    CMP(REG(3), REG(0), REG(2)), // r3 = r0 == r2 (so r3 = 1 if r0 == 42, else r3 = 0)
+    JCC(REG(3), 0),              // jumps to LABEL_PLACEHOLDER(0) if REG(3) != 0 (so REG(0) == 42)
+    MOVIMM(REG(1), 0),
+    RET(REG(1)),
+    LABEL_PLACEHOLDER(0),
+    MOVIMM(REG(1), 1337),
+    RET(REG(1)),
+});
+
+constexpr static auto eq42_mul = VMPreprocessor({
+    MOVIMM(REG(2), 42),
+    CMP(REG(3), REG(0), REG(2)),
+    MOVIMM(REG(1), 1337),
+    MUL(REG(4), REG(3), REG(1)),
+    RET(REG(4)),
+});
+
 constexpr static auto bytecode = VMPreprocessor({
-    OR(REG(4), REG(0), REG(1)),
-    XOR(REG(5), REG(2), REG(3)),
-    ADD(REG(6), REG(4), REG(5)),
-    RET(REG(6)),
+    OR(REG(4), REG(0), REG(1)),  // r4 = r0 | r1
+    XOR(REG(5), REG(2), REG(3)), // r5 = r2 ^ r3
+    ADD(REG(6), REG(4), REG(5)), // r6 = r4 + r5
+    RET(REG(6)),                 // return r6
 });
 
 int main(int argc, char** argv)
@@ -278,6 +314,8 @@ int main(int argc, char** argv)
     {
         args[i - 1] = atoi(argv[i]);
     }
+
+    auto bytecode = ::eq42;
 
     printf("arguments: (%" PRIi64 ", %" PRIi64 ", %" PRIi64 ", %" PRIi64 ")\n", args[0], args[1], args[2], args[3]);
     printf("data: ");
