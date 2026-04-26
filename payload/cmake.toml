@@ -38,3 +38,63 @@ sources = ["src/c2test.c"]
 [target.lsass]
 type = "riscvm"
 sources = ["src/lsass.cpp"]
+
+[target.test_crt_stdio]
+type = "riscvm"
+sources = ["src/tests/test_crt_stdio.c"]
+
+[target.test_crt_wide]
+type = "riscvm"
+sources = ["src/tests/test_crt_wide.c"]
+
+[target.test_crt_mbwc]
+type = "riscvm"
+sources = ["src/tests/test_crt_mbwc.c"]
+
+[target.test_crt_stat]
+type = "riscvm"
+sources = ["src/tests/test_crt_stat.c"]
+
+[target.test_crt_time]
+type = "riscvm"
+sources = ["src/tests/test_crt_time.c"]
+
+[target.test_crt_fini]
+type = "riscvm"
+sources = ["src/tests/test_crt_fini.cpp"]
+
+[target.test_crt_scanf]
+type = "riscvm"
+sources = ["src/tests/test_crt_scanf.c"]
+
+[target.test_crt_env]
+type = "riscvm"
+sources = ["src/tests/test_crt_env.c"]
+
+[target.test_crt_alloc]
+type = "riscvm"
+sources = ["src/tests/test_crt_alloc.c"]
+
+[target.test_crt_secure_fs]
+type = "riscvm"
+sources = ["src/tests/test_crt_secure_fs.c"]
+
+[target.example_console_report]
+type = "riscvm"
+sources = ["src/tests/example_console_report.c"]
+
+[target.example_file_inspector]
+type = "riscvm"
+sources = ["src/tests/example_file_inspector.c"]
+
+[target.example_unicode_inspector]
+type = "riscvm"
+sources = ["src/tests/example_unicode_inspector.c"]
+
+[target.example_mbwc_roundtrip]
+type = "riscvm"
+sources = ["src/tests/example_mbwc_roundtrip.c"]
+
+[target.example_cpp_lifecycle]
+type = "riscvm"
+sources = ["src/tests/example_cpp_lifecycle.cpp"]

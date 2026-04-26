@@ -255,3 +255,783 @@ get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} D
 if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT lsass)
 endif()
+
+# Target: test_crt_stdio
+set(test_crt_stdio_SOURCES
+	cmake.toml
+	"src/tests/test_crt_stdio.c"
+)
+
+add_riscvm_executable(test_crt_stdio)
+
+target_sources(test_crt_stdio PRIVATE ${test_crt_stdio_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${test_crt_stdio_SOURCES})
+
+target_compile_definitions(test_crt_stdio PRIVATE
+	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
+)
+
+if(MSVC) # msvc
+	target_compile_options(test_crt_stdio PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(test_crt_stdio PRIVATE
+		-fno-exceptions
+		-fno-rtti
+		-Wno-inconsistent-dllimport
+	)
+endif()
+
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"test_crt_stdio\" does not exist!")
+endif()
+
+target_link_libraries(test_crt_stdio PRIVATE
+	riscvm-crt0
+	ntdll.lib
+)
+
+if(MSVC) # msvc
+	target_link_options(test_crt_stdio PRIVATE
+		"/INCREMENTAL:NO"
+		"/DEBUG"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT test_crt_stdio)
+endif()
+
+# Target: test_crt_wide
+set(test_crt_wide_SOURCES
+	cmake.toml
+	"src/tests/test_crt_wide.c"
+)
+
+add_riscvm_executable(test_crt_wide)
+
+target_sources(test_crt_wide PRIVATE ${test_crt_wide_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${test_crt_wide_SOURCES})
+
+target_compile_definitions(test_crt_wide PRIVATE
+	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
+)
+
+if(MSVC) # msvc
+	target_compile_options(test_crt_wide PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(test_crt_wide PRIVATE
+		-fno-exceptions
+		-fno-rtti
+		-Wno-inconsistent-dllimport
+	)
+endif()
+
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"test_crt_wide\" does not exist!")
+endif()
+
+target_link_libraries(test_crt_wide PRIVATE
+	riscvm-crt0
+	ntdll.lib
+)
+
+if(MSVC) # msvc
+	target_link_options(test_crt_wide PRIVATE
+		"/INCREMENTAL:NO"
+		"/DEBUG"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT test_crt_wide)
+endif()
+
+# Target: test_crt_mbwc
+set(test_crt_mbwc_SOURCES
+	cmake.toml
+	"src/tests/test_crt_mbwc.c"
+)
+
+add_riscvm_executable(test_crt_mbwc)
+
+target_sources(test_crt_mbwc PRIVATE ${test_crt_mbwc_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${test_crt_mbwc_SOURCES})
+
+target_compile_definitions(test_crt_mbwc PRIVATE
+	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
+)
+
+if(MSVC) # msvc
+	target_compile_options(test_crt_mbwc PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(test_crt_mbwc PRIVATE
+		-fno-exceptions
+		-fno-rtti
+		-Wno-inconsistent-dllimport
+	)
+endif()
+
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"test_crt_mbwc\" does not exist!")
+endif()
+
+target_link_libraries(test_crt_mbwc PRIVATE
+	riscvm-crt0
+	ntdll.lib
+)
+
+if(MSVC) # msvc
+	target_link_options(test_crt_mbwc PRIVATE
+		"/INCREMENTAL:NO"
+		"/DEBUG"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT test_crt_mbwc)
+endif()
+
+# Target: test_crt_stat
+set(test_crt_stat_SOURCES
+	cmake.toml
+	"src/tests/test_crt_stat.c"
+)
+
+add_riscvm_executable(test_crt_stat)
+
+target_sources(test_crt_stat PRIVATE ${test_crt_stat_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${test_crt_stat_SOURCES})
+
+target_compile_definitions(test_crt_stat PRIVATE
+	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
+)
+
+if(MSVC) # msvc
+	target_compile_options(test_crt_stat PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(test_crt_stat PRIVATE
+		-fno-exceptions
+		-fno-rtti
+		-Wno-inconsistent-dllimport
+	)
+endif()
+
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"test_crt_stat\" does not exist!")
+endif()
+
+target_link_libraries(test_crt_stat PRIVATE
+	riscvm-crt0
+	ntdll.lib
+)
+
+if(MSVC) # msvc
+	target_link_options(test_crt_stat PRIVATE
+		"/INCREMENTAL:NO"
+		"/DEBUG"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT test_crt_stat)
+endif()
+
+# Target: test_crt_time
+set(test_crt_time_SOURCES
+	cmake.toml
+	"src/tests/test_crt_time.c"
+)
+
+add_riscvm_executable(test_crt_time)
+
+target_sources(test_crt_time PRIVATE ${test_crt_time_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${test_crt_time_SOURCES})
+
+target_compile_definitions(test_crt_time PRIVATE
+	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
+)
+
+if(MSVC) # msvc
+	target_compile_options(test_crt_time PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(test_crt_time PRIVATE
+		-fno-exceptions
+		-fno-rtti
+		-Wno-inconsistent-dllimport
+	)
+endif()
+
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"test_crt_time\" does not exist!")
+endif()
+
+target_link_libraries(test_crt_time PRIVATE
+	riscvm-crt0
+	ntdll.lib
+)
+
+if(MSVC) # msvc
+	target_link_options(test_crt_time PRIVATE
+		"/INCREMENTAL:NO"
+		"/DEBUG"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT test_crt_time)
+endif()
+
+# Target: test_crt_fini
+set(test_crt_fini_SOURCES
+	cmake.toml
+	"src/tests/test_crt_fini.cpp"
+)
+
+add_riscvm_executable(test_crt_fini)
+
+target_sources(test_crt_fini PRIVATE ${test_crt_fini_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${test_crt_fini_SOURCES})
+
+target_compile_definitions(test_crt_fini PRIVATE
+	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
+)
+
+if(MSVC) # msvc
+	target_compile_options(test_crt_fini PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(test_crt_fini PRIVATE
+		-fno-exceptions
+		-fno-rtti
+		-Wno-inconsistent-dllimport
+	)
+endif()
+
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"test_crt_fini\" does not exist!")
+endif()
+
+target_link_libraries(test_crt_fini PRIVATE
+	riscvm-crt0
+	ntdll.lib
+)
+
+if(MSVC) # msvc
+	target_link_options(test_crt_fini PRIVATE
+		"/INCREMENTAL:NO"
+		"/DEBUG"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT test_crt_fini)
+endif()
+
+# Target: test_crt_scanf
+set(test_crt_scanf_SOURCES
+	cmake.toml
+	"src/tests/test_crt_scanf.c"
+)
+
+add_riscvm_executable(test_crt_scanf)
+
+target_sources(test_crt_scanf PRIVATE ${test_crt_scanf_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${test_crt_scanf_SOURCES})
+
+target_compile_definitions(test_crt_scanf PRIVATE
+	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
+)
+
+if(MSVC) # msvc
+	target_compile_options(test_crt_scanf PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(test_crt_scanf PRIVATE
+		-fno-exceptions
+		-fno-rtti
+		-Wno-inconsistent-dllimport
+	)
+endif()
+
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"test_crt_scanf\" does not exist!")
+endif()
+
+target_link_libraries(test_crt_scanf PRIVATE
+	riscvm-crt0
+	ntdll.lib
+)
+
+if(MSVC) # msvc
+	target_link_options(test_crt_scanf PRIVATE
+		"/INCREMENTAL:NO"
+		"/DEBUG"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT test_crt_scanf)
+endif()
+
+# Target: test_crt_env
+set(test_crt_env_SOURCES
+	cmake.toml
+	"src/tests/test_crt_env.c"
+)
+
+add_riscvm_executable(test_crt_env)
+
+target_sources(test_crt_env PRIVATE ${test_crt_env_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${test_crt_env_SOURCES})
+
+target_compile_definitions(test_crt_env PRIVATE
+	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
+)
+
+if(MSVC) # msvc
+	target_compile_options(test_crt_env PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(test_crt_env PRIVATE
+		-fno-exceptions
+		-fno-rtti
+		-Wno-inconsistent-dllimport
+	)
+endif()
+
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"test_crt_env\" does not exist!")
+endif()
+
+target_link_libraries(test_crt_env PRIVATE
+	riscvm-crt0
+	ntdll.lib
+)
+
+if(MSVC) # msvc
+	target_link_options(test_crt_env PRIVATE
+		"/INCREMENTAL:NO"
+		"/DEBUG"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT test_crt_env)
+endif()
+
+# Target: test_crt_alloc
+set(test_crt_alloc_SOURCES
+	cmake.toml
+	"src/tests/test_crt_alloc.c"
+)
+
+add_riscvm_executable(test_crt_alloc)
+
+target_sources(test_crt_alloc PRIVATE ${test_crt_alloc_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${test_crt_alloc_SOURCES})
+
+target_compile_definitions(test_crt_alloc PRIVATE
+	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
+)
+
+if(MSVC) # msvc
+	target_compile_options(test_crt_alloc PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(test_crt_alloc PRIVATE
+		-fno-exceptions
+		-fno-rtti
+		-Wno-inconsistent-dllimport
+	)
+endif()
+
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"test_crt_alloc\" does not exist!")
+endif()
+
+target_link_libraries(test_crt_alloc PRIVATE
+	riscvm-crt0
+	ntdll.lib
+)
+
+if(MSVC) # msvc
+	target_link_options(test_crt_alloc PRIVATE
+		"/INCREMENTAL:NO"
+		"/DEBUG"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT test_crt_alloc)
+endif()
+
+# Target: test_crt_secure_fs
+set(test_crt_secure_fs_SOURCES
+	cmake.toml
+	"src/tests/test_crt_secure_fs.c"
+)
+
+add_riscvm_executable(test_crt_secure_fs)
+
+target_sources(test_crt_secure_fs PRIVATE ${test_crt_secure_fs_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${test_crt_secure_fs_SOURCES})
+
+target_compile_definitions(test_crt_secure_fs PRIVATE
+	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
+)
+
+if(MSVC) # msvc
+	target_compile_options(test_crt_secure_fs PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(test_crt_secure_fs PRIVATE
+		-fno-exceptions
+		-fno-rtti
+		-Wno-inconsistent-dllimport
+	)
+endif()
+
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"test_crt_secure_fs\" does not exist!")
+endif()
+
+target_link_libraries(test_crt_secure_fs PRIVATE
+	riscvm-crt0
+	ntdll.lib
+)
+
+if(MSVC) # msvc
+	target_link_options(test_crt_secure_fs PRIVATE
+		"/INCREMENTAL:NO"
+		"/DEBUG"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT test_crt_secure_fs)
+endif()
+
+# Target: example_console_report
+set(example_console_report_SOURCES
+	cmake.toml
+	"src/tests/example_console_report.c"
+)
+
+add_riscvm_executable(example_console_report)
+
+target_sources(example_console_report PRIVATE ${example_console_report_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${example_console_report_SOURCES})
+
+target_compile_definitions(example_console_report PRIVATE
+	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
+)
+
+if(MSVC) # msvc
+	target_compile_options(example_console_report PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(example_console_report PRIVATE
+		-fno-exceptions
+		-fno-rtti
+		-Wno-inconsistent-dllimport
+	)
+endif()
+
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"example_console_report\" does not exist!")
+endif()
+
+target_link_libraries(example_console_report PRIVATE
+	riscvm-crt0
+	ntdll.lib
+)
+
+if(MSVC) # msvc
+	target_link_options(example_console_report PRIVATE
+		"/INCREMENTAL:NO"
+		"/DEBUG"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT example_console_report)
+endif()
+
+# Target: example_file_inspector
+set(example_file_inspector_SOURCES
+	cmake.toml
+	"src/tests/example_file_inspector.c"
+)
+
+add_riscvm_executable(example_file_inspector)
+
+target_sources(example_file_inspector PRIVATE ${example_file_inspector_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${example_file_inspector_SOURCES})
+
+target_compile_definitions(example_file_inspector PRIVATE
+	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
+)
+
+if(MSVC) # msvc
+	target_compile_options(example_file_inspector PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(example_file_inspector PRIVATE
+		-fno-exceptions
+		-fno-rtti
+		-Wno-inconsistent-dllimport
+	)
+endif()
+
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"example_file_inspector\" does not exist!")
+endif()
+
+target_link_libraries(example_file_inspector PRIVATE
+	riscvm-crt0
+	ntdll.lib
+)
+
+if(MSVC) # msvc
+	target_link_options(example_file_inspector PRIVATE
+		"/INCREMENTAL:NO"
+		"/DEBUG"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT example_file_inspector)
+endif()
+
+# Target: example_unicode_inspector
+set(example_unicode_inspector_SOURCES
+	cmake.toml
+	"src/tests/example_unicode_inspector.c"
+)
+
+add_riscvm_executable(example_unicode_inspector)
+
+target_sources(example_unicode_inspector PRIVATE ${example_unicode_inspector_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${example_unicode_inspector_SOURCES})
+
+target_compile_definitions(example_unicode_inspector PRIVATE
+	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
+)
+
+if(MSVC) # msvc
+	target_compile_options(example_unicode_inspector PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(example_unicode_inspector PRIVATE
+		-fno-exceptions
+		-fno-rtti
+		-Wno-inconsistent-dllimport
+	)
+endif()
+
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"example_unicode_inspector\" does not exist!")
+endif()
+
+target_link_libraries(example_unicode_inspector PRIVATE
+	riscvm-crt0
+	ntdll.lib
+)
+
+if(MSVC) # msvc
+	target_link_options(example_unicode_inspector PRIVATE
+		"/INCREMENTAL:NO"
+		"/DEBUG"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT example_unicode_inspector)
+endif()
+
+# Target: example_mbwc_roundtrip
+set(example_mbwc_roundtrip_SOURCES
+	cmake.toml
+	"src/tests/example_mbwc_roundtrip.c"
+)
+
+add_riscvm_executable(example_mbwc_roundtrip)
+
+target_sources(example_mbwc_roundtrip PRIVATE ${example_mbwc_roundtrip_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${example_mbwc_roundtrip_SOURCES})
+
+target_compile_definitions(example_mbwc_roundtrip PRIVATE
+	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
+)
+
+if(MSVC) # msvc
+	target_compile_options(example_mbwc_roundtrip PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(example_mbwc_roundtrip PRIVATE
+		-fno-exceptions
+		-fno-rtti
+		-Wno-inconsistent-dllimport
+	)
+endif()
+
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"example_mbwc_roundtrip\" does not exist!")
+endif()
+
+target_link_libraries(example_mbwc_roundtrip PRIVATE
+	riscvm-crt0
+	ntdll.lib
+)
+
+if(MSVC) # msvc
+	target_link_options(example_mbwc_roundtrip PRIVATE
+		"/INCREMENTAL:NO"
+		"/DEBUG"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT example_mbwc_roundtrip)
+endif()
+
+# Target: example_cpp_lifecycle
+set(example_cpp_lifecycle_SOURCES
+	cmake.toml
+	"src/tests/example_cpp_lifecycle.cpp"
+)
+
+add_riscvm_executable(example_cpp_lifecycle)
+
+target_sources(example_cpp_lifecycle PRIVATE ${example_cpp_lifecycle_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${example_cpp_lifecycle_SOURCES})
+
+target_compile_definitions(example_cpp_lifecycle PRIVATE
+	_HAS_EXCEPTIONS=0
+	__USE_MINGW_ANSI_STDIO=0
+)
+
+if(MSVC) # msvc
+	target_compile_options(example_cpp_lifecycle PRIVATE
+		"/GR-"
+		"/EHs-"
+	)
+endif()
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$") OR (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_C_COMPILER_FRONTEND_VARIANT MATCHES "^MSVC$")) # clang
+	target_compile_options(example_cpp_lifecycle PRIVATE
+		-fno-exceptions
+		-fno-rtti
+		-Wno-inconsistent-dllimport
+	)
+endif()
+
+if(NOT TARGET riscvm-crt0)
+	message(FATAL_ERROR "Target \"riscvm-crt0\" referenced by \"example_cpp_lifecycle\" does not exist!")
+endif()
+
+target_link_libraries(example_cpp_lifecycle PRIVATE
+	riscvm-crt0
+	ntdll.lib
+)
+
+if(MSVC) # msvc
+	target_link_options(example_cpp_lifecycle PRIVATE
+		"/INCREMENTAL:NO"
+		"/DEBUG"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT example_cpp_lifecycle)
+endif()
