@@ -40,6 +40,45 @@ constexpr uint32_t hash_x65599(const char* buffer, bool case_sensitive)
 
 using ImportMap = std::unordered_map<std::string, std::string>;
 
+static const std::unordered_set<std::string> g_runtimeProvidedSymbols = {
+    "snprintf",
+    "sprintf",
+    "vsnprintf",
+    "vsprintf",
+    "swprintf",
+    "vswprintf",
+    "vsscanf",
+    "vswscanf",
+    "mbrlen",
+    "mbrtowc",
+    "mbsrtowcs",
+    "wcrtomb",
+    "wcsrtombs",
+    "_recalloc",
+    "_aligned_recalloc",
+    "_aligned_msize",
+    "_mktemp_s",
+    "_sopen_s",
+    "_access_s",
+    "_gmtime64_s",
+    "_localtime64_s",
+    "_ctime64_s",
+    "_strdate_s",
+    "_strtime_s",
+    "_get_daylight",
+    "_get_dstbias",
+    "_get_timezone",
+    "_get_tzname",
+    "_configthreadlocale",
+    "stat64",
+    "wstat64",
+    "fstat64",
+    "stat64i32",
+    "wstat64i32",
+    "_fstat64i32",
+    "atexit",
+};
+
 class HostCall
 {
     IRBuilder<>&        builder;
@@ -401,7 +440,12 @@ static void ProcessModule(Module& module, const ImportMap& importmap)
 
         // Collect imported functions
         auto name = function.getName();
-        if (function.hasDLLImportStorageClass() && !name.starts_with("riscvm_"))
+        if (g_runtimeProvidedSymbols.count(name.str()) != 0)
+        {
+            function.setDLLStorageClass(GlobalValue::DefaultStorageClass);
+            function.setDSOLocal(true);
+        }
+        else if (function.hasDLLImportStorageClass() && !name.starts_with("riscvm_"))
         {
             importedFunctions.push_back(&function);
         }

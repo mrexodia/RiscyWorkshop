@@ -61,8 +61,13 @@ static __attribute((optnone)) void riscvm_init_arrays()
 }
 
 void riscvm_imports() __attribute__((weak));
+void riscvm_fini() __attribute__((weak));
 
 void riscvm_imports()
+{
+}
+
+void riscvm_fini()
 {
 }
 
@@ -121,6 +126,8 @@ void _start()
     riscvm_relocs();
     riscvm_imports();
     riscvm_init_arrays();
-    exit(main());
+    int exit_code = main();
+    riscvm_fini();
+    exit(exit_code);
     asm volatile("ebreak");
 }
