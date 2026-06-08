@@ -35,10 +35,6 @@ sources = ["src/msgbox.c"]
 type = "riscvm"
 sources = ["src/c2test.c"]
 
-[target.lsass]
-type = "riscvm"
-sources = ["src/lsass.cpp"]
-
 [target.test_crt_stdio]
 type = "riscvm"
 sources = ["src/tests/test_crt_stdio.c"]
