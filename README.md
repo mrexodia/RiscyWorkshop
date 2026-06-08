@@ -64,6 +64,14 @@ WARNING: DO NOT RUN THIS COMMAND FROM THE PENDRIVE, IT WILL BE SLOW
 
 For more detailed steps, check out the [Dev Containers tutorial](https://code.visualstudio.com/docs/devcontainers/tutorial). The instructions after this assume you are running _inside_ the container.
 
+#### MacOS
+
+On ARM64 CPUs you need to pull the correct image once before opening the folder in a Dev Container:
+
+```bash
+docker pull --platform linux/amd64 ghcr.io/mrexodia/riscyworkshop
+```
+
 #### Windows
 
 Because the host filesystem is mounted inside the container you _may_ need to configure Git to not automatically convert line endings:
